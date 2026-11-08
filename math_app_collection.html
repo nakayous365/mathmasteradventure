@@ -1,0 +1,1854 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Master - 算数アドベンチャー</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=M+PLUS+Rounded+1c:wght@400;700;800;900&family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Zen Maru Gothic', 'M PLUS Rounded 1c', 'Fredoka', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+            background: linear-gradient(135deg, #e0f2fe 0%, #fce7f3 50%, #fef3c7 100%);
+            min-height: 100vh;
+        }
+
+        .bounce-hover {
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .bounce-hover:active { transform: scale(0.93); }
+        .bounce-hover:hover { transform: translateY(-4px) scale(1.02); }
+
+        .m1-glow-cherry { box-shadow: 0 0 20px rgba(244, 63, 94, 0.5); }
+        .m1-glow-green { box-shadow: 0 0 25px rgba(16, 185, 129, 0.6); }
+
+        @keyframes m2-frog-hop {
+            0% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.1) rotate(-5deg); }
+            100% { transform: translateY(0) scale(1); }
+        }
+        .m2-animate-hop { animation: m2-frog-hop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes m2-pop-in {
+            0% { transform: scale(0); opacity: 0; }
+            70% { transform: scale(1.25); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .m2-animate-pop-in { animation: m2-pop-in 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+        .m2-btn-3d { transition: all 0.1s ease; box-shadow: 0 6px 0 rgba(0,0,0,0.12); }
+        .m2-btn-3d:active { transform: translateY(4px); box-shadow: 0 2px 0 rgba(0,0,0,0.12); }
+        .m2-glass-card {
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 2px solid rgba(255, 255, 255, 0.7);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .m3-matific-card, .m4-matific-card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+            border: 3px solid #e2e8f0;
+        }
+        .m3-btn-game, .m4-btn-game {
+            transition: all 0.15s ease;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.18);
+        }
+        .m3-btn-game:active, .m4-btn-game:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.18);
+        }
+        .m3-tile-drag { cursor: grab; }
+        .m3-tile-drag:active { cursor: grabbing; }
+
+        .m4-numpad-btn {
+            font-size: 1.5rem;
+            font-weight: 900;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            background-color: #f8fafc;
+            border: 2px solid #cbd5e1;
+            color: #1e293b;
+            transition: all 0.1s;
+            box-shadow: 0 3px 0 #94a3b8;
+        }
+        .m4-numpad-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #94a3b8;
+            background-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen text-slate-800">
+
+    <!-- TOP SYSTEM BAR (Always visible) -->
+    <header class="w-full bg-slate-900/90 text-white backdrop-blur-md sticky top-0 z-50 border-b border-slate-700 shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-2.5 flex items-center justify-between">
+            <button onclick="goGlobalHome()" class="flex items-center gap-2 hover:opacity-80 transition">
+                <span class="text-2xl animate-bounce">🍒</span>
+                <span class="font-black text-lg sm:text-xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-rose-400 via-amber-300 to-sky-400">
+                    算数マスターアドベンチャー
+                </span>
+            </button>
+
+            <div class="flex items-center gap-3">
+                <button onclick="goGlobalHome()" id="btn-global-home-nav" class="hidden bg-white/10 hover:bg-white/20 text-white text-xs font-black px-3 py-1.5 rounded-full backdrop-blur-md transition border border-white/20 items-center gap-1.5">
+                    <i class="fa-solid fa-house text-amber-400"></i>
+                    <span>ホームへ</span>
+                </button>
+                <button onclick="openAdminModal()" class="bg-rose-500/80 hover:bg-rose-500 text-white p-2 rounded-full shadow-md transition flex items-center justify-center w-9 h-9" title="管理者モード">
+                    <i class="fa-solid fa-lock text-sm"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex-1 relative w-full flex flex-col">
+
+        <!-- ================================================================= -->
+        <!-- HOME SCREEN: UNIT & STAGE SELECT                                  -->
+        <!-- ================================================================= -->
+        <section id="screen-global-home" class="w-full max-w-5xl mx-auto p-4 sm:p-6 flex-1 flex flex-col justify-center space-y-6">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-2 bg-amber-300 text-amber-950 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm shadow-sm">
+                    🌟 楽しくステップアップ！
+                </div>
+                <h1 class="text-3xl sm:text-5xl font-black text-slate-800 tracking-wide">
+                    学年・単元をえらぼう！
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-600 font-bold">クリアしていくと次のステップが解放されるよ！</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                <!-- Unit 1 -->
+                <div id="unit-card-1" onclick="openStageModal(1)" class="bounce-hover bg-white/90 backdrop-blur-md border-4 border-rose-300 rounded-3xl p-5 shadow-lg relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-rose-500 text-white text-3xl flex items-center justify-center font-black shadow-md group-hover:scale-110 transition-transform">
+                            🍒
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-black text-rose-500 bg-rose-100 px-2.5 py-0.5 rounded-full">単元 1</span>
+                            <h2 class="text-xl font-black text-slate-800 mt-1">くりあがり・くりさがり</h2>
+                            <p class="text-xs text-slate-500 font-bold">さくらんぼ算で10のまとまりを作ろう！</p>
+                        </div>
+                        <div id="unit-lock-1" class="text-2xl text-slate-400">
+                            <!-- Dynamically updated -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Unit 2 -->
+                <div id="unit-card-2" onclick="openStageModal(2)" class="bounce-hover bg-white/90 backdrop-blur-md border-4 border-amber-300 rounded-3xl p-5 shadow-lg relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-amber-500 text-white text-3xl flex items-center justify-center font-black shadow-md group-hover:scale-110 transition-transform">
+                            ✖️
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-black text-amber-600 bg-amber-100 px-2.5 py-0.5 rounded-full">単元 2</span>
+                            <h2 class="text-xl font-black text-slate-800 mt-1">掛け算マスター</h2>
+                            <p class="text-xs text-slate-500 font-bold">お皿やジャンプで九九の仕組みを理解！</p>
+                        </div>
+                        <div id="unit-lock-2" class="text-2xl text-slate-400"></div>
+                    </div>
+                </div>
+
+                <!-- Unit 3 -->
+                <div id="unit-card-3" onclick="openStageModal(3)" class="bounce-hover bg-white/90 backdrop-blur-md border-4 border-emerald-300 rounded-3xl p-5 shadow-lg relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-emerald-500 text-white text-3xl flex items-center justify-center font-black shadow-md group-hover:scale-110 transition-transform">
+                            🟩
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-black text-emerald-600 bg-emerald-100 px-2.5 py-0.5 rounded-full">単元 3</span>
+                            <h2 class="text-xl font-black text-slate-800 mt-1">面積測定</h2>
+                            <p class="text-xs text-slate-500 font-bold">1cm² のマス目をしきつめて面積を発見！</p>
+                        </div>
+                        <div id="unit-lock-3" class="text-2xl text-slate-400"></div>
+                    </div>
+                </div>
+
+                <!-- Unit 4 -->
+                <div id="unit-card-4" onclick="openStageModal(4)" class="bounce-hover bg-white/90 backdrop-blur-md border-4 border-sky-300 rounded-3xl p-5 shadow-lg relative overflow-hidden cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 h-16 rounded-2xl bg-sky-500 text-white text-3xl flex items-center justify-center font-black shadow-md group-hover:scale-110 transition-transform">
+                            📐
+                        </div>
+                        <div class="flex-1">
+                            <span class="text-xs font-black text-sky-600 bg-sky-100 px-2.5 py-0.5 rounded-full">単元 4</span>
+                            <h2 class="text-xl font-black text-slate-800 mt-1">求積・さくらんぼ変身</h2>
+                            <p class="text-xs text-slate-500 font-bold">掛け算と分割を使って一発で計算しよう！</p>
+                        </div>
+                        <div id="unit-lock-4" class="text-2xl text-slate-400"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STAGE SELECT MODAL -->
+        <div id="modal-stage-select" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full space-y-6 shadow-2xl border-4 border-indigo-200 animate-pop-in relative">
+                <button onclick="closeStageModal()" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 font-black text-xl flex items-center justify-center">✕</button>
+
+                <div class="text-center space-y-1">
+                    <span id="modal-unit-badge" class="text-xs font-black px-3 py-1 rounded-full bg-indigo-100 text-indigo-700">単元選択</span>
+                    <h2 id="modal-unit-title" class="text-2xl font-black text-slate-800">ステージをえらぼう</h2>
+                </div>
+
+                <div id="modal-stage-buttons" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[60vh] overflow-y-auto p-1">
+                    <!-- Rendered dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN MODAL -->
+        <div id="modal-admin" class="hidden fixed inset-0 bg-slate-900/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full space-y-5 shadow-2xl border-4 border-rose-400 relative">
+                <button onclick="closeAdminModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 text-slate-500 font-black text-lg flex items-center justify-center">✕</button>
+
+                <div class="text-center space-y-1">
+                    <div class="w-12 h-12 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center text-xl mx-auto font-black">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h2 class="text-xl font-black text-slate-800">管理者モード</h2>
+                </div>
+
+                <div id="admin-pass-container" class="space-y-3">
+                    <p class="text-xs text-slate-600 font-bold text-center">パスワードを入力してください (初期: 1234)</p>
+                    <input type="password" id="admin-pass-input" placeholder="Password" class="w-full text-center py-2.5 px-4 text-lg font-black border-2 border-slate-300 rounded-xl focus:outline-none focus:border-rose-500">
+                    <button onclick="checkAdminPassword()" class="w-full bg-rose-500 hover:bg-rose-600 text-white font-black py-2.5 rounded-xl shadow">ログイン</button>
+                </div>
+
+                <div id="admin-controls" class="hidden space-y-3 pt-2">
+                    <div class="bg-emerald-50 border border-emerald-200 text-emerald-800 p-2.5 rounded-xl text-xs font-bold text-center">
+                        ✅ 管理者としてログイン中
+                    </div>
+                    <button onclick="unlockAllProgress()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-xl shadow flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-lock-open"></i> 全ステージ一括解放
+                    </button>
+                    <button onclick="resetAllProgress()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-3 rounded-xl shadow flex items-center justify-center gap-2 text-sm">
+                        <i class="fa-solid fa-rotate-left"></i> 進捗リセット (最初から)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODULE 1: くりあがり (Sakuranbo Math)                              -->
+        <!-- ================================================================= -->
+        <div id="global-module-1" class="hidden w-full flex-col justify-between min-h-[calc(100vh-60px)]">
+            <header class="w-full max-w-4xl mx-auto px-4 py-3 flex justify-between items-center z-20">
+                <button onclick="goGlobalHome()" class="bounce-hover w-12 h-12 bg-white rounded-2xl shadow-md border-2 border-rose-200 flex items-center justify-center text-rose-500 text-xl font-black">
+                    <i class="fa-solid fa-house"></i>
+                </button>
+
+                <div id="m1-game-progress" class="hidden flex items-center gap-3 bg-white/90 backdrop-blur-md px-4 py-2 rounded-2xl shadow-md border-2 border-rose-200">
+                    <div class="flex items-center gap-1 text-amber-500 font-extrabold text-lg">
+                        <i class="fa-solid fa-star animate-pulse"></i>
+                        <span id="m1-level-num">1</span>
+                    </div>
+                    <div class="w-24 sm:w-36 bg-slate-100 h-4 rounded-full overflow-hidden border border-slate-200">
+                        <div id="m1-progress-bar-fill" class="bg-gradient-to-r from-rose-400 to-amber-400 h-full w-0 transition-all duration-500 rounded-full"></div>
+                    </div>
+                    <span id="m1-score-count" class="font-extrabold text-slate-600 text-sm">0/10</span>
+                </div>
+
+                <button id="m1-btn-audio" class="bounce-hover w-12 h-12 bg-white rounded-2xl shadow-md border-2 border-rose-200 flex items-center justify-center text-xl font-black">
+                    <i id="m1-audio-icon" class="fa-solid fa-volume-high text-emerald-500"></i>
+                </button>
+            </header>
+
+            <main class="w-full max-w-4xl mx-auto px-4 flex-1 flex flex-col items-center justify-center relative py-4">
+                <section id="m1-screen-mode-select" class="w-full max-w-xl bg-white/90 backdrop-blur-lg rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-rose-200 text-center flex flex-col items-center space-y-6">
+                    <div class="flex items-center justify-center gap-3">
+                        <span class="text-4xl animate-bounce">🍒</span>
+                        <h1 class="text-3xl sm:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-amber-500">
+                            SAKURANBO MATH
+                        </h1>
+                        <span class="text-4xl animate-bounce" style="animation-delay: 0.2s;">🍒</span>
+                    </div>
+
+                    <div class="w-full grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+                        <button data-mode="add" class="m1-mode-card bounce-hover bg-gradient-to-b from-rose-50 to-rose-100 hover:from-rose-100 hover:to-rose-200 border-4 border-rose-300 rounded-2xl p-4 flex flex-col items-center justify-between space-y-3 group shadow-md hover:shadow-lg">
+                            <div class="w-14 h-14 bg-rose-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black group-hover:scale-110 transition-transform shadow-md">+</div>
+                            <div class="flex items-center gap-1 text-rose-600 font-bold text-lg"><span>8</span><span>+</span><span>3</span></div>
+                            <div class="bg-rose-500 text-white text-xs px-3 py-1 rounded-full font-bold">8+2=10 ➔ 10+1</div>
+                        </button>
+
+                        <button data-mode="subA" class="m1-mode-card bounce-hover bg-gradient-to-b from-sky-50 to-sky-100 hover:from-sky-100 hover:to-sky-200 border-4 border-sky-300 rounded-2xl p-4 flex flex-col items-center justify-between space-y-3 group shadow-md hover:shadow-lg">
+                            <div class="w-14 h-14 bg-sky-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black group-hover:scale-110 transition-transform shadow-md">- A</div>
+                            <div class="flex items-center gap-1 text-sky-600 font-bold text-lg"><span>13</span><span>-</span><span>8</span></div>
+                            <div class="bg-sky-500 text-white text-xs px-3 py-1 rounded-full font-bold">10-8=2 ➔ 2+3</div>
+                        </button>
+
+                        <button data-mode="subB" class="m1-mode-card bounce-hover bg-gradient-to-b from-emerald-50 to-emerald-100 hover:from-emerald-100 hover:to-emerald-200 border-4 border-emerald-300 rounded-2xl p-4 flex flex-col items-center justify-between space-y-3 group shadow-md hover:shadow-lg">
+                            <div class="w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center text-3xl font-black group-hover:scale-110 transition-transform shadow-md">- B</div>
+                            <div class="flex items-center gap-1 text-emerald-600 font-bold text-lg"><span>13</span><span>-</span><span>4</span></div>
+                            <div class="bg-emerald-500 text-white text-xs px-3 py-1 rounded-full font-bold">13-3=10 ➔ 10-1</div>
+                        </button>
+                    </div>
+
+                    <div class="w-full pt-4 border-t-2 border-rose-100">
+                        <div class="flex items-center justify-center gap-2 mb-3 text-slate-500 font-bold text-sm">
+                            <i class="fa-solid fa-layer-group text-amber-500"></i>
+                            <span>LEVEL SELECT</span>
+                        </div>
+                        <div class="flex justify-center items-center gap-2 sm:gap-3 flex-wrap" id="m1-difficulty-buttons"></div>
+                    </div>
+                </section>
+
+                <section id="m1-screen-gameplay" class="hidden w-full max-w-2xl flex flex-col items-center space-y-6">
+                    <div id="m1-visual-basket-container" class="w-full bg-white/80 backdrop-blur-md rounded-3xl p-4 border-2 border-rose-200 shadow-md flex flex-col items-center justify-center min-h-[140px] transition-all relative overflow-hidden">
+                        <div id="m1-visual-dots-array" class="flex flex-wrap items-center justify-center gap-3 w-full transition-all duration-500"></div>
+                    </div>
+
+                    <div class="w-full bg-white rounded-3xl p-6 sm:p-8 shadow-xl border-4 border-rose-200 relative flex flex-col items-center min-h-[350px] justify-center">
+                        <div id="m1-step-badge-container" class="flex items-center justify-center gap-2 mb-2">
+                            <span id="m1-step-badge-1" class="w-8 h-8 rounded-full bg-rose-500 text-white font-extrabold flex items-center justify-center text-sm shadow">1</span>
+                            <span class="w-6 h-0.5 bg-slate-200"></span>
+                            <span id="m1-step-badge-2" class="w-8 h-8 rounded-full bg-slate-200 text-slate-400 font-extrabold flex items-center justify-center text-sm">2</span>
+                            <span class="w-6 h-0.5 bg-slate-200"></span>
+                            <span id="m1-step-badge-3" class="w-8 h-8 rounded-full bg-slate-200 text-slate-400 font-extrabold flex items-center justify-center text-sm">3</span>
+                        </div>
+
+                        <div class="flex items-center justify-center gap-3 sm:gap-6 text-4xl sm:text-6xl font-black text-slate-700 my-4 relative">
+                            <div class="relative flex flex-col items-center">
+                                <div id="m1-num-left" class="px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-slate-800 transition-all duration-500">8</div>
+                                <div id="m1-cherry-stem-left" class="hidden absolute top-full left-1/2 -translate-x-1/2 w-40 h-24 pointer-events-none z-10">
+                                    <svg class="w-full h-full" viewBox="0 0 160 90">
+                                        <path d="M 80 0 L 35 60 M 80 0 L 125 60" stroke="#f43f5e" stroke-width="5" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <div id="m1-cherry-slots-left" class="hidden absolute top-20 left-1/2 -translate-x-1/2 flex items-center justify-between w-44 z-20">
+                                    <div data-slot="left-a" class="cherry-slot bounce-hover w-16 h-16 rounded-full border-4 border-dashed border-rose-400 bg-rose-50 flex items-center justify-center text-2xl font-black text-rose-600 shadow-inner transition-all">?</div>
+                                    <div data-slot="left-b" class="cherry-slot bounce-hover w-16 h-16 rounded-full border-4 border-dashed border-rose-400 bg-rose-50 flex items-center justify-center text-2xl font-black text-rose-600 shadow-inner transition-all">?</div>
+                                </div>
+                            </div>
+
+                            <div id="m1-math-operator" class="text-rose-500 font-extrabold">+</div>
+
+                            <div class="relative flex flex-col items-center">
+                                <div id="m1-num-right" class="px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-slate-800 transition-all duration-500">3</div>
+                                <div id="m1-cherry-stem-right" class="hidden absolute top-full left-1/2 -translate-x-1/2 w-40 h-24 pointer-events-none z-10">
+                                    <svg class="w-full h-full" viewBox="0 0 160 90">
+                                        <path d="M 80 0 L 35 60 M 80 0 L 125 60" stroke="#f43f5e" stroke-width="5" stroke-linecap="round"/>
+                                    </svg>
+                                </div>
+                                <div id="m1-cherry-slots-right" class="hidden absolute top-20 left-1/2 -translate-x-1/2 flex items-center justify-between w-44 z-20">
+                                    <div data-slot="right-a" class="cherry-slot bounce-hover w-16 h-16 rounded-full border-4 border-dashed border-rose-400 bg-rose-50 flex items-center justify-center text-2xl font-black text-rose-600 shadow-inner transition-all">?</div>
+                                    <div data-slot="right-b" class="cherry-slot bounce-hover w-16 h-16 rounded-full border-4 border-dashed border-rose-400 bg-rose-50 flex items-center justify-center text-2xl font-black text-rose-600 shadow-inner transition-all">?</div>
+                                </div>
+                            </div>
+
+                            <div id="m1-equals-sign" class="text-slate-400 font-bold hidden sm:block">=</div>
+
+                            <div class="relative hidden sm:flex flex-col items-center">
+                                <div id="m1-answer-box" class="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-4 border-slate-300 bg-slate-50 flex items-center justify-center text-slate-800 font-extrabold text-3xl sm:text-4xl shadow-inner transition-all duration-500">?</div>
+                            </div>
+                        </div>
+
+                        <div class="sm:hidden flex items-center gap-3 mt-16 mb-2">
+                            <span class="text-3xl font-extrabold text-slate-400">=</span>
+                            <div id="m1-answer-box-mobile" class="w-16 h-16 rounded-2xl border-4 border-slate-300 bg-slate-50 flex items-center justify-center text-slate-800 font-extrabold text-3xl shadow-inner transition-all duration-500">?</div>
+                        </div>
+
+                        <div class="h-28 sm:h-24 w-full"></div>
+
+                        <div id="m1-step-instruction-visual" class="flex items-center gap-2 bg-amber-50 border-2 border-amber-200 text-amber-800 px-5 py-2 rounded-full font-extrabold text-sm shadow-sm transition-all">
+                            <i id="m1-instruction-icon" class="fa-solid fa-hand-pointer text-amber-500 text-lg"></i>
+                            <span id="m1-instruction-text">CHOOSE CHERRY SPLIT</span>
+                        </div>
+                    </div>
+
+                    <div id="m1-choice-panel" class="w-full bg-white/90 backdrop-blur-md rounded-3xl p-4 shadow-xl border-2 border-rose-200 flex flex-col items-center justify-center min-h-[140px]">
+                        <div id="m1-cherry-pair-options" class="flex flex-wrap items-center justify-center gap-3 w-full"></div>
+                        <div id="m1-final-answer-options" class="hidden flex flex-wrap items-center justify-center gap-3 w-full"></div>
+                    </div>
+                </section>
+
+                <section id="m1-screen-stage-clear" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-md z-50 flex items-center justify-center p-4">
+                    <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center flex flex-col items-center space-y-6 shadow-2xl border-4 border-amber-300">
+                        <div class="relative">
+                            <span class="text-7xl">🍒</span>
+                            <i class="fa-solid fa-crown text-amber-400 text-4xl absolute -top-4 -right-2 animate-bounce"></i>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex justify-center gap-1 text-4xl text-amber-400">
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                                <i class="fa-solid fa-star"></i>
+                            </div>
+                            <p class="text-slate-500 font-extrabold tracking-wider text-sm pt-2">EXCELLENT!</p>
+                        </div>
+
+                        <div class="w-full flex gap-3">
+                            <button id="m1-btn-replay" class="flex-1 bounce-hover bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-2xl font-black text-xl flex items-center justify-center gap-2 border-2 border-slate-300">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                            <button id="m1-btn-next-level" class="flex-2 bounce-hover bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-600 hover:to-amber-600 text-white py-3 px-6 rounded-2xl font-black text-xl shadow-lg flex items-center justify-center gap-2 border-2 border-rose-300 w-full">
+                                <i class="fa-solid fa-play"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODULE 2: 掛け算 (Kakezan Master)                                 -->
+        <!-- ================================================================= -->
+        <div id="global-module-2" class="hidden w-full flex-col items-center justify-center min-h-[calc(100vh-60px)] p-3 sm:p-6">
+            <div class="w-full max-w-xl m2-glass-card rounded-3xl p-4 sm:p-7 relative overflow-hidden my-auto">
+                <div id="m2-screen-mode" class="space-y-4 m2-animate-pop-in">
+                    <div class="text-center mb-4">
+                        <div class="inline-flex items-center gap-2 bg-amber-300 text-amber-950 px-4 py-1.5 rounded-full font-black text-xs sm:text-sm shadow-sm">
+                            ✨ Visual Math Studio ✨
+                        </div>
+                        <h1 class="text-4xl sm:text-5xl font-black text-slate-800 tracking-wider mt-2">
+                            ✖️ <span class="text-indigo-600">MASTER</span> 🎮
+                        </h1>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 gap-3.5">
+                        <button onclick="m2ShowScreen('m2-screen-learn')" class="m2-btn-3d bg-gradient-to-r from-amber-400 to-orange-400 hover:from-amber-500 hover:to-orange-500 text-white p-4.5 rounded-2xl flex items-center justify-between border-b-4 border-orange-600 shadow-md">
+                            <div class="flex items-center gap-3.5">
+                                <div class="bg-white/30 rounded-2xl p-3 text-3xl font-black flex items-center justify-center w-14 h-14">💡</div>
+                                <div class="text-left">
+                                    <div class="font-black text-xl tracking-wide flex items-center gap-2">🎬 Visual Learn</div>
+                                    <div class="text-xs text-amber-100 font-bold opacity-90">みて・触って たのしく理解！</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xl opacity-80 mr-2"></i>
+                        </button>
+
+                        <button onclick="m2StartVisualQuiz()" class="m2-btn-3d bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white p-4.5 rounded-2xl flex items-center justify-between border-b-4 border-teal-700 shadow-md">
+                            <div class="flex items-center gap-3.5">
+                                <div class="bg-white/30 rounded-2xl p-3 text-3xl font-black flex items-center justify-center w-14 h-14">🎯</div>
+                                <div class="text-left">
+                                    <div class="font-black text-xl tracking-wide">🧩 Visual Quiz</div>
+                                    <div class="text-xs text-emerald-100 font-bold opacity-90">イラストをみて こたえを選ぼう</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xl opacity-80 mr-2"></i>
+                        </button>
+
+                        <button onclick="m2SelectMode('timeattack')" class="m2-btn-3d bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white p-4.5 rounded-2xl flex items-center justify-between border-b-4 border-purple-800 shadow-md">
+                            <div class="flex items-center gap-3.5">
+                                <div class="bg-white/30 rounded-2xl p-3 text-3xl font-black flex items-center justify-center w-14 h-14">⚡</div>
+                                <div class="text-left">
+                                    <div class="font-black text-xl tracking-wide">⏱️ Speed Challenge</div>
+                                    <div class="text-xs text-indigo-100 font-bold opacity-90">60秒でナンバースピード挑戦！</div>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-xl opacity-80 mr-2"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="m2-screen-learn" class="hidden space-y-4 m2-animate-pop-in">
+                    <div class="flex bg-slate-200/80 p-1.5 rounded-2xl justify-between gap-1">
+                        <button id="m2-tab-btn-group" onclick="m2SwitchLearnTab('group')" class="flex-1 py-2 rounded-xl font-black text-xs sm:text-sm bg-white text-indigo-600 shadow-sm transition">🍎 Group (皿)</button>
+                        <button id="m2-tab-btn-hop" onclick="m2SwitchLearnTab('hop')" class="flex-1 py-2 rounded-xl font-black text-xs sm:text-sm text-slate-600 hover:text-slate-800 transition">🐸 Hop (ジャンプ)</button>
+                        <button id="m2-tab-btn-grid" onclick="m2SwitchLearnTab('grid')" class="flex-1 py-2 rounded-xl font-black text-xs sm:text-sm text-slate-600 hover:text-slate-800 transition">⭐ Grid (配列)</button>
+                    </div>
+
+                    <div class="bg-white/90 rounded-2xl p-3 border border-slate-200 flex items-center justify-around shadow-sm font-black text-lg text-slate-700">
+                        <div class="flex items-center gap-2">
+                            <span id="m2-label-param-a" class="text-2xl">🍎</span>
+                            <button onclick="m2ChangeParam('a', -1)" class="w-8 h-8 rounded-xl bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-black">-</button>
+                            <span id="m2-val-param-a" class="text-2xl text-rose-500 font-black min-w-[24px] text-center">3</span>
+                            <button onclick="m2ChangeParam('a', 1)" class="w-8 h-8 rounded-xl bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-black">+</button>
+                        </div>
+
+                        <span class="text-2xl text-amber-500 font-black">✖️</span>
+
+                        <div class="flex items-center gap-2">
+                            <span id="m2-label-param-b" class="text-2xl">🍽️</span>
+                            <button onclick="m2ChangeParam('b', -1)" class="w-8 h-8 rounded-xl bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-black">-</button>
+                            <span id="m2-val-param-b" class="text-2xl text-indigo-600 font-black min-w-[24px] text-center">3</span>
+                            <button onclick="m2ChangeParam('b', 1)" class="w-8 h-8 rounded-xl bg-slate-200 hover:bg-slate-300 flex items-center justify-center font-black">+</button>
+                        </div>
+                    </div>
+
+                    <div class="text-center py-2 bg-gradient-to-r from-amber-100 to-orange-100 rounded-2xl border-2 border-amber-300 shadow-inner">
+                        <div class="text-3xl sm:text-4xl font-black text-slate-800">
+                            <span id="m2-learn-num-a" class="text-rose-500">3</span>
+                            <span class="text-amber-500">✖️</span>
+                            <span id="m2-learn-num-b" class="text-indigo-600">3</span>
+                            <span class="text-slate-400">＝</span>
+                            <span id="m2-learn-num-result" class="text-emerald-600 text-4xl sm:text-5xl">9</span>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/80 rounded-3xl p-4 border-2 border-slate-200 min-h-[220px] flex items-center justify-center relative overflow-hidden shadow-inner">
+                        <div id="m2-view-learn-group" class="w-full flex flex-wrap justify-center gap-3 items-center"></div>
+                        
+                        <div id="m2-view-learn-hop" class="w-full hidden flex flex-col items-center justify-center space-y-4">
+                            <div id="m2-frog-character" class="text-5xl transition-all duration-300">🐸</div>
+                            <div class="w-full overflow-x-auto pb-2">
+                                <div id="m2-number-line-container" class="flex items-center min-w-max px-4 py-2 border-b-4 border-emerald-500 relative"></div>
+                            </div>
+                            <button onclick="m2PlayFrogHopAnimation()" class="m2-btn-3d bg-emerald-500 hover:bg-emerald-600 text-white font-black px-6 py-2.5 rounded-full shadow-md text-sm flex items-center gap-2">
+                                <span>▶️ Play Hop!</span>
+                            </button>
+                        </div>
+
+                        <div id="m2-view-learn-grid" class="w-full hidden flex flex-col items-center justify-center gap-1.5"></div>
+                    </div>
+
+                    <button onclick="m2ShowScreen('m2-screen-mode')" class="w-full py-3 rounded-2xl bg-slate-700 hover:bg-slate-800 text-white font-black text-sm shadow-md">
+                        🏠 Top Menu
+                    </button>
+                </div>
+
+                <div id="m2-screen-game" class="hidden space-y-4 m2-animate-pop-in">
+                    <div class="flex justify-between items-center bg-slate-100 px-4 py-2 rounded-2xl font-black text-slate-700 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">⭐</span>
+                            <span id="m2-game-score" class="text-indigo-600 text-xl font-black">0</span>
+                        </div>
+                        <div id="m2-combo-container" class="hidden items-center gap-1 bg-amber-300 text-amber-950 px-3 py-1 rounded-full text-xs font-black animate-bounce">
+                            🔥 <span id="m2-combo-count">2</span> COMBO
+                        </div>
+                        <div id="m2-timer-container" class="flex items-center gap-1 text-rose-500 font-black text-lg">
+                            ⏱️ <span id="m2-time-left">60s</span>
+                        </div>
+                    </div>
+
+                    <div id="m2-progress-bar-bg" class="w-full bg-slate-200 h-2.5 rounded-full overflow-hidden">
+                        <div id="m2-progress-bar" class="bg-indigo-500 h-full w-full transition-all duration-200"></div>
+                    </div>
+
+                    <div class="bg-gradient-to-br from-indigo-50 to-blue-50 border-2 border-indigo-100 rounded-3xl p-4 text-center shadow-inner min-h-[180px] flex flex-col items-center justify-center relative">
+                        <div id="m2-quiz-visual-stage" class="w-full flex flex-wrap justify-center gap-2 mb-2"></div>
+                        <div id="m2-quiz-formula-stage" class="hidden text-5xl font-black text-slate-800 my-2 flex items-center justify-center gap-2">
+                            <span id="m2-num-a">3</span>
+                            <span class="text-indigo-500">✖️</span>
+                            <span id="m2-num-b">4</span>
+                            <span class="text-slate-400">＝</span>
+                            <span id="m2-user-input-display" class="inline-block min-w-[70px] border-b-4 border-indigo-600 text-indigo-600 bg-white/70 rounded-xl px-2 text-center min-h-[60px] leading-[60px]">?</span>
+                        </div>
+                    </div>
+
+                    <div id="m2-quiz-options-grid" class="grid grid-cols-2 gap-3"></div>
+
+                    <div id="m2-quiz-numpad" class="hidden grid grid-cols-3 gap-2 max-w-xs mx-auto">
+                        <button onclick="m2PressNum(1)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">1</button>
+                        <button onclick="m2PressNum(2)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">2</button>
+                        <button onclick="m2PressNum(3)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">3</button>
+                        <button onclick="m2PressNum(4)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">4</button>
+                        <button onclick="m2PressNum(5)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">5</button>
+                        <button onclick="m2PressNum(6)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">6</button>
+                        <button onclick="m2PressNum(7)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">7</button>
+                        <button onclick="m2PressNum(8)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">8</button>
+                        <button onclick="m2PressNum(9)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">9</button>
+                        <button onclick="m2PressClear()" class="m2-btn-3d bg-rose-100 text-rose-600 font-bold text-lg py-3 rounded-2xl border border-rose-200">⌫</button>
+                        <button onclick="m2PressNum(0)" class="m2-btn-3d bg-white font-black text-2xl py-3 rounded-2xl border border-slate-200">0</button>
+                        <button onclick="m2SubmitAnswer()" class="m2-btn-3d bg-emerald-500 text-white font-black text-lg py-3 rounded-2xl border border-emerald-600 shadow-md">OK</button>
+                    </div>
+                </div>
+
+                <div id="m2-screen-result" class="hidden text-center space-y-5 m2-animate-pop-in">
+                    <div class="text-6xl animate-bounce">🎉</div>
+                    <h2 class="text-3xl font-black text-slate-800">GREAT JOB!</h2>
+
+                    <div class="bg-gradient-to-r from-amber-400 to-orange-400 text-white rounded-3xl p-6 shadow-lg space-y-2">
+                        <div class="text-sm font-bold text-amber-100">TOTAL SCORE</div>
+                        <div id="m2-final-score" class="text-5xl font-black text-white drop-shadow">0</div>
+                    </div>
+
+                    <div class="flex gap-3">
+                        <button onclick="m2StartGame()" class="m2-btn-3d w-1/2 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-lg border-b-4 border-emerald-700">
+                            🔄 RETRY
+                        </button>
+                        <button onclick="m2ShowScreen('m2-screen-mode')" class="m2-btn-3d w-1/2 py-4 rounded-2xl bg-slate-700 hover:bg-slate-800 text-white font-black text-lg border-b-4 border-slate-900">
+                            🏠 MENU
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODULE 3: 面積測定 (Square It Up!)                              -->
+        <!-- ================================================================= -->
+        <div id="global-module-3" class="hidden w-full flex-col justify-between min-h-[calc(100vh-60px)]">
+            <header class="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 text-white shadow-lg sticky top-[53px] z-40">
+                <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white p-2 rounded-2xl shadow-inner text-amber-500 text-2xl flex items-center justify-center w-12 h-12">🟩</div>
+                        <div>
+                            <h1 class="text-lg md:text-2xl font-black tracking-wide leading-tight drop-shadow">Square It Up! めんせきはかせ</h1>
+                            <p class="text-xs md:text-sm font-bold text-amber-100">1 cm² のマスをしきつめて計算しよう！</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 px-3 py-1.5 rounded-2xl backdrop-blur-md flex items-center space-x-2 text-white font-extrabold text-xs md:text-sm">
+                            <span>⭐ かんりょう:</span>
+                            <span id="m3-star-count" class="text-yellow-300 text-base md:text-lg">0 / 3</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="max-w-5xl mx-auto w-full px-4 pt-4">
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">🍒</span>
+                        <div>
+                            <h2 class="text-sm md:text-base font-black text-amber-900">さくらんぼ思考のヒント：</h2>
+                            <p class="text-xs md:text-sm text-amber-800 font-bold">計算の「さくらんぼ算」と同じ！「やりづらい形」は チョキンと分けて「知っている長方形」に変身させよう！</p>
+                        </div>
+                    </div>
+                    <button onclick="m3ToggleHintModal()" class="whitespace-nowrap bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs px-3.5 py-2 rounded-xl m3-btn-game shadow">
+                        🍒 さくらんぼ算との関係を見る
+                    </button>
+                </div>
+            </div>
+
+            <main class="max-w-5xl mx-auto w-full p-4 flex-grow grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="md:col-span-8 space-y-4">
+                    <div class="m3-matific-card p-4 md:p-6 space-y-4 relative overflow-hidden">
+                        <div class="flex flex-wrap items-center justify-between border-b pb-3 gap-2">
+                            <div>
+                                <span id="m3-level-badge" class="bg-orange-100 text-orange-800 text-xs font-black px-3 py-1 rounded-full">ステージ 1 : ちょうほうけい</span>
+                                <h2 id="m3-task-title" class="text-base md:text-lg font-black text-slate-800 mt-1">枠の中に 1 cm² の正方形をしきつめよう！</h2>
+                            </div>
+
+                            <div class="flex space-x-2">
+                                <button onclick="m3AutoFillGrid()" class="bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-extrabold px-3 py-1.5 rounded-xl m3-btn-game">✨ 一気にならべる</button>
+                                <button onclick="m3ResetCurrentStage()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-extrabold px-3 py-1.5 rounded-xl m3-btn-game">🔄 やりなおす</button>
+                            </div>
+                        </div>
+
+                        <div class="relative bg-slate-100 rounded-2xl p-4 md:p-6 border-2 border-slate-200 flex flex-col items-center justify-center min-h-[320px]">
+                            <div id="m3-ruler-top" class="absolute top-2 text-xs font-black text-indigo-600 bg-white/80 px-2 py-0.5 rounded-md shadow-sm border">よこ: ? cm</div>
+                            <div id="m3-ruler-left" class="absolute left-2 text-xs font-black text-indigo-600 bg-white/80 px-2 py-0.5 rounded-md shadow-sm border [writing-mode:vertical-lr]">たて: ? cm</div>
+
+                            <canvas id="m3GridCanvas" width="360" height="280" class="max-w-full rounded-lg cursor-pointer shadow-inner bg-white"></canvas>
+
+                            <div id="m3-scissors-tools" class="hidden mt-3 flex space-x-2">
+                                <button onclick="m3CutLShape('vertical')" id="m3-btn-cut-v" class="bg-rose-500 hover:bg-rose-600 text-white text-xs font-black px-3 py-2 rounded-xl m3-btn-game">✂️ たてに切る (さくらんぼ分断)</button>
+                                <button onclick="m3CutLShape('horizontal')" id="m3-btn-cut-h" class="bg-sky-500 hover:bg-sky-600 text-white text-xs font-black px-3 py-2 rounded-xl m3-btn-game">✂️ よこに切る (さくらんぼ分断)</button>
+                            </div>
+                        </div>
+
+                        <div class="bg-amber-50/70 border border-amber-200 rounded-xl p-3 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center space-x-3">
+                                <div id="m3-tile-source" class="w-10 h-10 bg-amber-400 border-2 border-amber-600 rounded-lg flex items-center justify-center text-white font-black text-xs shadow-md m3-tile-drag hover:scale-105 transition">1 cm²</div>
+                                <p class="text-xs font-bold text-slate-700">👈 マス目をクリック（または上のボタン）で正方形をしきつめよう！</p>
+                            </div>
+                            <div class="text-xs font-black text-amber-800">
+                                おいた数: <span id="m3-placed-count" class="text-base text-amber-600">0</span> マス
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-4 space-y-4">
+                    <div class="m3-matific-card p-5 space-y-4 border-2 border-indigo-100">
+                        <h3 class="text-sm font-black text-slate-700 flex items-center space-x-2">
+                            <span>📐</span>
+                            <span>しきつめた数と公式</span>
+                        </h3>
+
+                        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2 text-xs font-bold text-slate-700">
+                            <div class="flex justify-between items-center">
+                                <span>たての長さ (行) :</span>
+                                <span id="m3-stat-h" class="text-indigo-600 font-black text-sm">? cm</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span>よこの長さ (列) :</span>
+                                <span id="m3-stat-w" class="text-indigo-600 font-black text-sm">? cm</span>
+                            </div>
+                            <div class="border-t pt-2 flex justify-between items-center text-slate-900 font-black">
+                                <span>ぜんぶのマス数 :</span>
+                                <span id="m3-stat-total" class="text-amber-600 text-base">? 個</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl p-4 text-white shadow-md space-y-3">
+                            <label class="block text-xs font-extrabold text-indigo-100 text-center">この図形のめんせきは？</label>
+                            <div class="flex items-center justify-center space-x-2">
+                                <input type="number" id="m3-user-answer" placeholder="?" class="w-24 h-12 text-center text-2xl font-black text-slate-800 rounded-xl border-2 border-white focus:outline-none focus:ring-4 focus:ring-yellow-300 shadow-inner">
+                                <span class="text-lg font-black">cm²</span>
+                            </div>
+
+                            <button onclick="m3CheckAnswer()" class="w-full bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-black py-3 rounded-xl text-sm shadow-md m3-btn-game flex items-center justify-center space-x-2">
+                                <span>✅</span>
+                                <span>こたえあわせ！</span>
+                            </button>
+                        </div>
+
+                        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-xs text-emerald-800 font-bold space-y-1">
+                            <div class="flex items-center space-x-1 font-black text-emerald-900">
+                                <span>💡</span>
+                                <span>長方形の面積の公式：</span>
+                            </div>
+                            <p class="text-center text-sm font-black text-emerald-700 my-1">たて × よこ ＝ 面積 (cm²)</p>
+                        </div>
+                    </div>
+
+                    <div class="m3-matific-card p-4 space-y-2">
+                        <span class="text-xs font-black text-slate-500 block">ステージをえらぶ:</span>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="m3LoadStage(1)" id="m3-btn-st-1" class="py-2 rounded-xl font-black text-xs m3-btn-game bg-amber-500 text-white">1. ちょうほうけい</button>
+                            <button onclick="m3LoadStage(2)" id="m3-btn-st-2" class="py-2 rounded-xl font-black text-xs m3-btn-game bg-slate-100 text-slate-700">2. 大きなしかく</button>
+                            <button onclick="m3LoadStage(3)" id="m3-btn-st-3" class="py-2 rounded-xl font-black text-xs m3-btn-game bg-slate-100 text-slate-700">3. Lがた (分解)</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+
+            <div id="m3-hint-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+                <div class="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border-4 border-amber-300">
+                    <div class="flex justify-between items-center border-b pb-2">
+                        <h3 class="text-lg font-black text-amber-900 flex items-center space-x-2">
+                            <span>🍒</span>
+                            <span>さくらんぼ算と図形のひみつ</span>
+                        </h3>
+                        <button onclick="m3ToggleHintModal()" class="text-slate-400 hover:text-slate-600 font-black text-xl">✕</button>
+                    </div>
+
+                    <div class="space-y-3 text-xs md:text-sm text-slate-700 font-bold leading-relaxed">
+                        <div class="bg-amber-50 p-3 rounded-2xl border border-amber-200">
+                            <p class="text-amber-900 font-black mb-1">【たし算のさくらんぼ算】</p>
+                            <p>8 ＋ 5 の計算のとき、5 を (2 と 3) にチョキンと分けて 10 のまとまりを作ったよね！</p>
+                        </div>
+                        <div class="bg-rose-50 p-3 rounded-2xl border border-rose-200">
+                            <p class="text-rose-900 font-black mb-1">【図形のさくらんぼ変身術】</p>
+                            <p>L字型のような変な形も同じ！チョキンと切り分けて「知っている2つの長方形」に分解すれば、かんたんに面積がもとめられるよ！</p>
+                        </div>
+                    </div>
+
+                    <button onclick="m3ToggleHintModal()" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-black py-3 rounded-xl m3-btn-game text-xs md:text-sm">
+                        なるほど！理解した！
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- MODULE 4: 求積 (Geometry & Sakuranbo Transformation)               -->
+        <!-- ================================================================= -->
+        <div id="global-module-4" class="hidden w-full flex-col justify-between min-h-[calc(100vh-60px)]">
+            <header class="bg-gradient-to-r from-amber-400 via-orange-400 to-rose-400 text-white shadow-lg sticky top-[53px] z-40">
+                <div class="max-w-5xl mx-auto px-4 py-3 flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white p-2 rounded-2xl shadow-inner text-amber-500 text-2xl flex items-center justify-center w-12 h-12">🍒</div>
+                        <div>
+                            <h1 class="text-lg md:text-2xl font-black tracking-wide leading-tight drop-shadow">図形と面積 〜さくらんぼ変身術〜</h1>
+                            <p class="text-xs md:text-sm font-bold text-amber-100">数えなくても掛け算＆分割で一発クリア！</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white/20 px-3.5 py-1.5 rounded-2xl backdrop-blur-md flex items-center space-x-2 text-white font-extrabold text-xs md:text-sm">
+                            <span>クリアしたステージ:</span>
+                            <span id="m4-completed-stage-count" class="text-yellow-300 text-base md:text-lg">0 / 2</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="max-w-5xl mx-auto w-full px-4 pt-4">
+                <div class="bg-amber-50 border-2 border-amber-300 rounded-2xl p-3 flex flex-col sm:flex-row items-center justify-between gap-3 shadow-sm">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-3xl">💡</span>
+                        <div>
+                            <h2 class="text-sm md:text-base font-black text-amber-900">さくらんぼの術（分ける・まとめる）を使おう！</h2>
+                            <p class="text-xs md:text-sm text-amber-800 font-bold">やりづらい大きい形も、チョキンと切り分ければ「知っている長方形」のたし算で楽々解ける！</p>
+                        </div>
+                    </div>
+                    <div class="text-xs font-black bg-amber-400 text-amber-900 px-3 py-1.5 rounded-xl shadow-sm">全2ステージ（各10問）</div>
+                </div>
+            </div>
+
+            <main class="max-w-5xl mx-auto w-full p-4 flex-grow grid grid-cols-1 md:grid-cols-12 gap-6">
+                <div class="md:col-span-7 space-y-4">
+                    <div class="m4-matific-card p-4 md:p-6 space-y-4 relative overflow-hidden">
+                        <div class="flex items-center justify-between border-b pb-3">
+                            <div>
+                                <span id="m4-stage-badge" class="bg-orange-100 text-orange-800 text-xs font-black px-3 py-1 rounded-full">ステージ 1</span>
+                                <h2 id="m4-stage-title" class="text-base md:text-lg font-black text-slate-800 mt-1">数えるより「掛け算」！</h2>
+                            </div>
+
+                            <div class="text-right">
+                                <span class="text-xs font-bold text-slate-500">もんだい</span>
+                                <div id="m4-question-progress" class="text-lg font-black text-indigo-600">1 / 10</div>
+                            </div>
+                        </div>
+
+                        <div class="w-full bg-slate-200 rounded-full h-3 overflow-hidden">
+                            <div id="m4-progress-bar-inner" class="bg-gradient-to-r from-amber-400 to-orange-500 h-3 rounded-full transition-all duration-300" style="width: 10%;"></div>
+                        </div>
+
+                        <div class="relative bg-slate-100 rounded-2xl p-4 flex flex-col items-center justify-center min-h-[300px] border-2 border-slate-200">
+                            <canvas id="m4ShapeCanvas" width="360" height="260" class="max-w-full rounded-lg shadow-inner bg-white"></canvas>
+                            <div id="m4-canvas-hint" class="mt-3 text-xs md:text-sm font-black text-indigo-900 bg-indigo-50 border border-indigo-200 px-4 py-2 rounded-xl text-center">たて × よこ で一発計算！</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="md:col-span-5 space-y-4">
+                    <div class="m4-matific-card p-5 space-y-4 border-2 border-indigo-100">
+                        <div class="text-center space-y-1">
+                            <p class="text-xs font-extrabold text-slate-500">この図形の面積はいくつかな？</p>
+                            <div class="flex items-center justify-center space-x-2">
+                                <div id="m4-answer-display" class="w-32 h-14 bg-slate-100 border-4 border-indigo-400 rounded-2xl flex items-center justify-center text-3xl font-black text-indigo-900 tracking-wider shadow-inner">?</div>
+                                <span class="text-lg font-black text-slate-700">cm²</span>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-2 pt-2">
+                            <button onclick="m4AppendNum(7)" class="m4-numpad-btn">7</button>
+                            <button onclick="m4AppendNum(8)" class="m4-numpad-btn">8</button>
+                            <button onclick="m4AppendNum(9)" class="m4-numpad-btn">9</button>
+                            <button onclick="m4AppendNum(4)" class="m4-numpad-btn">4</button>
+                            <button onclick="m4AppendNum(5)" class="m4-numpad-btn">5</button>
+                            <button onclick="m4AppendNum(6)" class="m4-numpad-btn">6</button>
+                            <button onclick="m4AppendNum(1)" class="m4-numpad-btn">1</button>
+                            <button onclick="m4AppendNum(2)" class="m4-numpad-btn">2</button>
+                            <button onclick="m4AppendNum(3)" class="m4-numpad-btn">3</button>
+                            <button onclick="m4ClearInput()" class="m4-numpad-btn bg-rose-100 border-rose-300 text-rose-700">けす</button>
+                            <button onclick="m4AppendNum(0)" class="m4-numpad-btn">0</button>
+                            <button onclick="m4CheckAnswer()" class="m4-numpad-btn bg-emerald-500 border-emerald-600 text-white shadow-emerald-700">決定</button>
+                        </div>
+
+                        <button onclick="m4CheckAnswer()" class="w-full bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-white font-black py-3.5 rounded-2xl text-base shadow-md m4-btn-game flex items-center justify-center space-x-2">
+                            <span>✅ こたえあわせをする</span>
+                        </button>
+                    </div>
+
+                    <div class="m4-matific-card p-3 flex space-x-2">
+                        <button onclick="m4SwitchStage(1)" id="m4-stage-btn-1" class="flex-1 py-2.5 rounded-xl font-black text-xs m4-btn-game bg-amber-500 text-white">ステージ1 (10問)</button>
+                        <button onclick="m4SwitchStage(2)" id="m4-stage-btn-2" class="flex-1 py-2.5 rounded-xl font-black text-xs m4-btn-game bg-slate-100 text-slate-700">ステージ2 (10問)</button>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+    </div>
+
+    <!-- GLOBAL FOOTER -->
+    <footer class="bg-slate-800 text-slate-400 text-center py-3 text-xs font-bold border-t border-slate-700 mt-auto">
+        算数マスターアドベンチャー：くりあがり・掛け算・面積測定・求積 統合学習
+    </footer>
+
+    <!-- GLOBAL SYSTEM LOGIC -->
+    <script>
+        // PROGRESS & UNLOCK MANAGEMENT
+        const DEFAULT_PROGRESS = {
+            unlockedUnits: [1],
+            unitProgress: {
+                1: { maxStage: 1, cleared: [] },
+                2: { maxStage: 1, cleared: [] },
+                3: { maxStage: 1, cleared: [] },
+                4: { maxStage: 1, cleared: [] }
+            },
+            adminUnlocked: false
+        };
+
+        let userProgress = JSON.parse(localStorage.getItem('math_app_progress')) || JSON.parse(JSON.stringify(DEFAULT_PROGRESS));
+
+        function saveProgress() {
+            localStorage.setItem('math_app_progress', JSON.stringify(userProgress));
+            renderHomeCards();
+        }
+
+        function isUnitUnlocked(unitId) {
+            if (userProgress.adminUnlocked) return true;
+            return userProgress.unlockedUnits.includes(unitId);
+        }
+
+        function isStageUnlocked(unitId, stageId) {
+            if (userProgress.adminUnlocked) return true;
+            if (!isUnitUnlocked(unitId)) return false;
+            return stageId <= (userProgress.unitProgress[unitId]?.maxStage || 1);
+        }
+
+        function completeStage(unitId, stageId, totalStagesInUnit) {
+            if (!userProgress.unitProgress[unitId].cleared.includes(stageId)) {
+                userProgress.unitProgress[unitId].cleared.push(stageId);
+            }
+            if (stageId < totalStagesInUnit) {
+                userProgress.unitProgress[unitId].maxStage = Math.max(userProgress.unitProgress[unitId].maxStage, stageId + 1);
+            } else {
+                // Unit Cleared -> Unlock Next Unit
+                if (unitId < 4 && !userProgress.unlockedUnits.includes(unitId + 1)) {
+                    userProgress.unlockedUnits.push(unitId + 1);
+                }
+            }
+            saveProgress();
+        }
+
+        // HOME UI RENDER
+        function renderHomeCards() {
+            for (let u = 1; u <= 4; u++) {
+                const lockEl = document.getElementById(`unit-lock-${u}`);
+                const cardEl = document.getElementById(`unit-card-${u}`);
+                const unlocked = isUnitUnlocked(u);
+
+                if (unlocked) {
+                    lockEl.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-500"></i>';
+                    cardEl.classList.remove('opacity-60', 'grayscale');
+                } else {
+                    lockEl.innerHTML = '<i class="fa-solid fa-lock text-slate-400"></i>';
+                    cardEl.classList.add('opacity-60', 'grayscale');
+                }
+            }
+        }
+
+        function goGlobalHome() {
+            ['screen-global-home', 'global-module-1', 'global-module-2', 'global-module-3', 'global-module-4'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+                document.getElementById(id).classList.remove('flex');
+            });
+            document.getElementById('screen-global-home').classList.remove('hidden');
+            document.getElementById('screen-global-home').classList.add('flex');
+            document.getElementById('btn-global-home-nav').classList.add('hidden');
+            document.getElementById('btn-global-home-nav').classList.remove('flex');
+            renderHomeCards();
+        }
+
+        let selectedUnitForModal = 1;
+        function openStageModal(unitId) {
+            if (!isUnitUnlocked(unitId)) {
+                alert("前の単元をクリアするか、管理者モードで解除してね！");
+                return;
+            }
+
+            selectedUnitForModal = unitId;
+            const modal = document.getElementById('modal-stage-select');
+            const titleEl = document.getElementById('modal-unit-title');
+            const badgeEl = document.getElementById('modal-unit-badge');
+            const stageBtnsEl = document.getElementById('modal-stage-buttons');
+
+            badgeEl.textContent = `単元 ${unitId}`;
+            const unitNames = ["", "くりあがり・くりさがり", "掛け算マスター", "面積測定", "求積・さくらんぼ変身"];
+            const stageCounts = [0, 6, 3, 3, 2]; // Levels per unit
+
+            titleEl.textContent = unitNames[unitId];
+            stageBtnsEl.innerHTML = '';
+
+            for (let s = 1; s <= stageCounts[unitId]; s++) {
+                const isUnlocked = isStageUnlocked(unitId, s);
+                const isCleared = userProgress.unitProgress[unitId]?.cleared.includes(s);
+
+                const btn = document.createElement('button');
+                btn.className = `bounce-hover p-4 rounded-2xl font-black flex flex-col items-center justify-center gap-1 border-2 shadow-sm transition ${
+                    isUnlocked 
+                        ? (isCleared ? 'bg-emerald-50 border-emerald-400 text-emerald-800' : 'bg-amber-400 border-amber-500 text-white')
+                        : 'bg-slate-100 border-slate-300 text-slate-400 cursor-not-allowed'
+                }`;
+
+                btn.innerHTML = `
+                    <span class="text-xl">${isUnlocked ? (isCleared ? '⭐' : '🎯') : '🔒'}</span>
+                    <span class="text-sm">ステージ ${s}</span>
+                `;
+
+                if (isUnlocked) {
+                    btn.onclick = () => {
+                        closeStageModal();
+                        launchUnit(unitId, s);
+                    };
+                }
+
+                stageBtnsEl.appendChild(btn);
+            }
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeStageModal() {
+            document.getElementById('modal-stage-select').classList.add('hidden');
+        }
+
+        function launchUnit(unitId, stageId) {
+            document.getElementById('screen-global-home').classList.add('hidden');
+            document.getElementById('btn-global-home-nav').classList.remove('hidden');
+            document.getElementById('btn-global-home-nav').classList.add('flex');
+
+            for (let i = 1; i <= 4; i++) {
+                const mod = document.getElementById(`global-module-${i}`);
+                if (i === unitId) {
+                    mod.classList.remove('hidden');
+                    mod.classList.add('flex');
+                } else {
+                    mod.classList.add('hidden');
+                    mod.classList.remove('flex');
+                }
+            }
+
+            // Launch module stage
+            if (unitId === 1) {
+                m1State.level = stageId;
+                m1InitDifficultyUI();
+                m1StartMode('add');
+            } else if (unitId === 2) {
+                if (stageId === 1) m2ShowScreen('m2-screen-learn');
+                else if (stageId === 2) m2StartVisualQuiz();
+                else m2SelectMode('timeattack');
+            } else if (unitId === 3) {
+                m3LoadStage(stageId);
+            } else if (unitId === 4) {
+                m4SwitchStage(stageId);
+            }
+        }
+
+        // ADMIN CONTROLS
+        function openAdminModal() {
+            document.getElementById('modal-admin').classList.remove('hidden');
+        }
+        function closeAdminModal() {
+            document.getElementById('modal-admin').classList.add('hidden');
+        }
+        function checkAdminPassword() {
+            const pass = document.getElementById('admin-pass-input').value;
+            if (pass === "1234" || pass === "admin") {
+                document.getElementById('admin-pass-container').classList.add('hidden');
+                document.getElementById('admin-controls').classList.remove('hidden');
+            } else {
+                alert("パスワードが違います！");
+            }
+        }
+        function unlockAllProgress() {
+            userProgress.adminUnlocked = true;
+            saveProgress();
+            alert("全ステージを解放しました！");
+            closeAdminModal();
+        }
+        function resetAllProgress() {
+            userProgress = JSON.parse(JSON.stringify(DEFAULT_PROGRESS));
+            saveProgress();
+            alert("進捗を初期化しました。");
+            closeAdminModal();
+        }
+
+        /* ================================================================= */
+        /* MODULE 1 LOGIC                                                    */
+        /* ================================================================= */
+        class M1AudioSynth {
+            constructor() { this.ctx = null; this.enabled = true; }
+            init() { if (!this.ctx) { const AudioContext = window.AudioContext || window.webkitAudioContext; this.ctx = new AudioContext(); } }
+            playTone(freq, type = 'sine', duration = 0.15, gainVal = 0.3) {
+                if (!this.enabled) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch(e) {}
+            }
+            playCorrect() {
+                if (!this.enabled) return;
+                this.playTone(523.25, 'triangle', 0.1, 0.3);
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.1, 0.3), 100);
+                setTimeout(() => this.playTone(783.99, 'triangle', 0.25, 0.3), 200);
+            }
+            playPop() { this.playTone(400, 'sine', 0.08, 0.4); }
+            playWrong() {
+                if (!this.enabled) return;
+                this.playTone(220, 'sawtooth', 0.2, 0.2);
+                setTimeout(() => this.playTone(196, 'sawtooth', 0.3, 0.2), 150);
+            }
+            playLevelClear() {
+                if (!this.enabled) return;
+                [440, 554.37, 659.25, 880].forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'triangle', 0.2, 0.3), idx * 120);
+                });
+            }
+        }
+        const m1Audio = new M1AudioSynth();
+        const m1State = { mode: 'add', level: 1, score: 0, targetScore: 10, currentProblem: null, step: 1, selectedSplit: null };
+        const m1DifficultyConfig = { 1: { min: 8, max: 9 }, 2: { min: 7, max: 9 }, 3: { min: 6, max: 9 }, 4: { min: 5, max: 9 }, 5: { min: 4, max: 9 }, 6: { min: 2, max: 9 } };
+        let m1Screens = {}, m1El = {};
+
+        function m1InitDOMElements() {
+            m1Screens = { modeSelect: document.getElementById('m1-screen-mode-select'), gameplay: document.getElementById('m1-screen-gameplay'), stageClear: document.getElementById('m1-screen-stage-clear') };
+            m1El = {
+                btnHome: document.getElementById('m1-btn-home'), btnAudio: document.getElementById('m1-btn-audio'), audioIcon: document.getElementById('m1-audio-icon'),
+                gameProgress: document.getElementById('m1-game-progress'), scoreCount: document.getElementById('m1-score-count'), progressBarFill: document.getElementById('m1-progress-bar-fill'),
+                levelNum: document.getElementById('m1-level-num'), difficultyButtons: document.getElementById('m1-difficulty-buttons'),
+                numLeft: document.getElementById('m1-num-left'), numRight: document.getElementById('m1-num-right'), mathOperator: document.getElementById('m1-math-operator'),
+                equalsSign: document.getElementById('m1-equals-sign'), answerBox: document.getElementById('m1-answer-box'), answerBoxMobile: document.getElementById('m1-answer-box-mobile'),
+                cherryStemLeft: document.getElementById('m1-cherry-stem-left'), cherryStemRight: document.getElementById('m1-cherry-stem-right'),
+                cherrySlotsLeft: document.getElementById('m1-cherry-slots-left'), cherrySlotsRight: document.getElementById('m1-cherry-slots-right'),
+                visualDotsArray: document.getElementById('m1-visual-dots-array'), visualBasketContainer: document.getElementById('m1-visual-basket-container'),
+                choicePanel: document.getElementById('m1-choice-panel'), cherryPairOptions: document.getElementById('m1-cherry-pair-options'),
+                finalAnswerOptions: document.getElementById('m1-final-answer-options'), instructionText: document.getElementById('m1-instruction-text'),
+                instructionIcon: document.getElementById('m1-instruction-icon'), btnReplay: document.getElementById('m1-btn-replay'), btnNextLevel: document.getElementById('m1-btn-next-level')
+            };
+        }
+
+        function m1SetupEventListeners() {
+            document.querySelectorAll('.m1-mode-card').forEach(card => {
+                card.addEventListener('click', () => { m1Audio.playPop(); m1StartMode(card.getAttribute('data-mode')); });
+            });
+            if (m1El.btnHome) m1El.btnHome.addEventListener('click', () => { m1Audio.playPop(); m1ShowScreen('modeSelect'); });
+            if (m1El.btnAudio) {
+                m1El.btnAudio.addEventListener('click', () => {
+                    m1Audio.enabled = !m1Audio.enabled;
+                    if (m1El.audioIcon) m1El.audioIcon.className = m1Audio.enabled ? "fa-solid fa-volume-high text-emerald-500" : "fa-solid fa-volume-xmark text-slate-400";
+                    if (m1Audio.enabled) m1Audio.playPop();
+                });
+            }
+            if (m1El.btnReplay) m1El.btnReplay.addEventListener('click', () => { m1Audio.playPop(); if (m1Screens.stageClear) m1Screens.stageClear.classList.add('hidden'); m1StartMode(m1State.mode); });
+            if (m1El.btnNextLevel) {
+                m1El.btnNextLevel.addEventListener('click', () => {
+                    m1Audio.playPop();
+                    if (m1Screens.stageClear) m1Screens.stageClear.classList.add('hidden');
+                    if (m1State.level < 6) m1State.level++;
+                    m1StartMode(m1State.mode);
+                });
+            }
+        }
+
+        function m1InitDifficultyUI() {
+            m1El.difficultyButtons.innerHTML = '';
+            for (let i = 1; i <= 6; i++) {
+                const btn = document.createElement('button');
+                btn.className = `bounce-hover w-10 h-10 sm:w-12 sm:h-12 rounded-2xl border-2 font-black flex items-center justify-center transition-all ${
+                    m1State.level === i ? 'bg-amber-400 text-white border-amber-500 shadow-md scale-110' : 'bg-white text-slate-600 border-slate-200 hover:border-amber-300'
+                }`;
+                btn.innerHTML = i;
+                btn.addEventListener('click', (e) => { e.stopPropagation(); m1Audio.playPop(); m1State.level = i; m1InitDifficultyUI(); });
+                m1El.difficultyButtons.appendChild(btn);
+            }
+        }
+
+        function m1ShowScreen(screenKey) {
+            Object.keys(m1Screens).forEach(key => m1Screens[key].classList.toggle('hidden', key !== screenKey));
+            m1El.gameProgress.classList.toggle('hidden', screenKey !== 'gameplay');
+        }
+
+        function m1StartMode(mode) {
+            m1State.mode = mode; m1State.score = 0; m1UpdateProgress(); m1ShowScreen('gameplay'); m1GenerateQuestion();
+        }
+
+        function m1UpdateProgress() {
+            m1El.levelNum.textContent = m1State.level;
+            m1El.scoreCount.textContent = `${m1State.score} / ${m1State.targetScore}`;
+            m1El.progressBarFill.style.width = `${(m1State.score / m1State.targetScore) * 100}%`;
+        }
+
+        function m1UpdateStepBadges(activeStep) {
+            [1, 2, 3].forEach(step => {
+                const badge = document.getElementById(`m1-step-badge-${step}`);
+                if (step === activeStep) badge.className = "w-8 h-8 rounded-full bg-rose-500 text-white font-extrabold flex items-center justify-center text-sm shadow scale-110 transition-all";
+                else if (step < activeStep) badge.className = "w-8 h-8 rounded-full bg-emerald-500 text-white font-extrabold flex items-center justify-center text-sm transition-all";
+                else badge.className = "w-8 h-8 rounded-full bg-slate-200 text-slate-400 font-extrabold flex items-center justify-center text-sm transition-all";
+            });
+        }
+
+        function m1GenerateQuestion() {
+            m1State.step = 1; m1State.selectedSplit = null; m1UpdateStepBadges(1); m1ResetCherryUI();
+            const levelCfg = m1DifficultyConfig[m1State.level];
+            
+            if (m1State.mode === 'add') {
+                const left = Math.floor(Math.random() * (9 - levelCfg.min + 1)) + levelCfg.min;
+                const neededForTen = 10 - left;
+                const rightRem = Math.floor(Math.random() * 8) + 1;
+                const right = neededForTen + rightRem;
+                m1State.currentProblem = { left, right, op: '+', splitSide: 'right', correctPair: [neededForTen, rightRem], answer: left + right };
+            } else if (m1State.mode === 'subA') {
+                const sub = Math.floor(Math.random() * 6) + 3;
+                const singleDigit = Math.floor(Math.random() * (sub - 1)) + 1;
+                const left = 10 + singleDigit;
+                m1State.currentProblem = { left, right: sub, op: '-', splitSide: 'left', correctPair: [10, singleDigit], answer: left - sub };
+            } else if (m1State.mode === 'subB') {
+                const singleDigit = Math.floor(Math.random() * 5) + 1;
+                const left = 10 + singleDigit;
+                const subRem = Math.floor(Math.random() * 4) + 1;
+                const right = singleDigit + subRem;
+                m1State.currentProblem = { left, right, op: '-', splitSide: 'right', correctPair: [singleDigit, subRem], answer: left - right };
+            }
+
+            m1RenderEquationUI(); m1RenderVisualDotsInitial(); m1RenderCherryOptions();
+        }
+
+        function m1ResetCherryUI() {
+            m1El.cherryStemLeft.classList.add('hidden'); m1El.cherryStemRight.classList.add('hidden');
+            m1El.cherrySlotsLeft.classList.add('hidden'); m1El.cherrySlotsRight.classList.add('hidden');
+            document.querySelectorAll('.cherry-slot').forEach(slot => {
+                slot.textContent = '?';
+                slot.className = "cherry-slot bounce-hover w-16 h-16 rounded-full border-4 border-dashed border-rose-400 bg-rose-50 flex items-center justify-center text-2xl font-black text-rose-600 shadow-inner transition-all";
+            });
+            m1El.numLeft.className = "px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-slate-800 transition-all duration-500";
+            m1El.numRight.className = "px-4 py-2 rounded-2xl bg-slate-50 border-2 border-slate-200 text-slate-800 transition-all duration-500";
+            m1El.answerBox.textContent = '?'; m1El.answerBoxMobile.textContent = '?';
+            m1El.answerBox.className = "w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-4 border-slate-300 bg-slate-50 flex items-center justify-center text-slate-800 font-extrabold text-3xl sm:text-4xl shadow-inner transition-all duration-500";
+            m1El.answerBoxMobile.className = "w-16 h-16 rounded-2xl border-4 border-slate-300 bg-slate-50 flex items-center justify-center text-slate-800 font-extrabold text-3xl shadow-inner transition-all duration-500";
+        }
+
+        function m1RenderEquationUI() {
+            const prob = m1State.currentProblem;
+            m1El.numLeft.textContent = prob.left; m1El.numRight.textContent = prob.right; m1El.mathOperator.textContent = prob.op;
+            if (prob.splitSide === 'left') { m1El.cherryStemLeft.classList.remove('hidden'); m1El.cherrySlotsLeft.classList.remove('hidden'); }
+            else { m1El.cherryStemRight.classList.remove('hidden'); m1El.cherrySlotsRight.classList.remove('hidden'); }
+            m1El.instructionIcon.className = "fa-solid fa-scissors text-amber-500 text-lg animate-bounce";
+            m1El.instructionText.textContent = "SPLIT CHERRY";
+        }
+
+        function m1RenderVisualDotsInitial() {
+            m1El.visualDotsArray.innerHTML = '';
+            const prob = m1State.currentProblem;
+            const leftGroup = document.createElement('div');
+            leftGroup.className = "flex flex-wrap items-center justify-center gap-1.5 p-2.5 bg-rose-50 border-2 border-rose-200 rounded-2xl shadow-sm transition-all";
+            for (let i = 0; i < prob.left; i++) leftGroup.appendChild(m1CreateCherryDot('rose'));
+            const opSign = document.createElement('div');
+            opSign.className = "text-2xl font-black text-rose-400 px-1"; opSign.textContent = prob.op;
+            const rightGroup = document.createElement('div');
+            rightGroup.className = "flex flex-wrap items-center justify-center gap-1.5 p-2.5 bg-sky-50 border-2 border-sky-200 rounded-2xl shadow-sm transition-all";
+            for (let i = 0; i < prob.right; i++) rightGroup.appendChild(m1CreateCherryDot('sky'));
+            m1El.visualDotsArray.appendChild(leftGroup); m1El.visualDotsArray.appendChild(opSign); m1El.visualDotsArray.appendChild(rightGroup);
+        }
+
+        function m1CreateCherryDot(color = 'rose') {
+            const icon = document.createElement('span');
+            icon.className = `inline-block text-xl sm:text-2xl transition-all duration-500`;
+            icon.innerHTML = color === 'rose' ? '🍒' : '🔴';
+            return icon;
+        }
+
+        function m1RenderCherryOptions() {
+            m1El.cherryPairOptions.classList.remove('hidden'); m1El.finalAnswerOptions.classList.add('hidden'); m1El.cherryPairOptions.innerHTML = '';
+            const prob = m1State.currentProblem;
+            const splitNum = prob.splitSide === 'left' ? prob.left : prob.right;
+            const correctA = prob.correctPair[0]; const correctB = prob.correctPair[1];
+            const candidatePairs = [[correctA, correctB]];
+
+            while (candidatePairs.length < 3) {
+                let randA = Math.floor(Math.random() * (splitNum - 1)) + 1;
+                let randB = splitNum - randA;
+                if (!candidatePairs.some(p => p[0] === randA && p[1] === randB)) candidatePairs.push([randA, randB]);
+            }
+            candidatePairs.sort(() => Math.random() - 0.5);
+
+            candidatePairs.forEach(pair => {
+                const btn = document.createElement('button');
+                btn.className = "bounce-hover bg-gradient-to-b from-rose-100 to-rose-200 hover:from-rose-200 hover:to-rose-300 border-4 border-rose-400 rounded-2xl px-5 py-3 flex items-center gap-3 shadow-md";
+                btn.innerHTML = `<div class="w-10 h-10 rounded-full bg-white text-rose-600 font-extrabold text-xl flex items-center justify-center shadow-inner">${pair[0]}</div><span class="text-rose-400 font-bold">•</span><div class="w-10 h-10 rounded-full bg-white text-rose-600 font-extrabold text-xl flex items-center justify-center shadow-inner">${pair[1]}</div>`;
+                btn.addEventListener('click', () => m1HandleSplitChoice(pair, pair[0] === correctA && pair[1] === correctB));
+                m1El.cherryPairOptions.appendChild(btn);
+            });
+        }
+
+        function m1HandleSplitChoice(pair, isCorrect) {
+            const prob = m1State.currentProblem;
+            if (!isCorrect) {
+                m1Audio.playWrong();
+                m1El.choicePanel.classList.add('animate-bounce');
+                setTimeout(() => m1El.choicePanel.classList.remove('animate-bounce'), 400);
+                return;
+            }
+            m1Audio.playCorrect(); m1State.selectedSplit = pair;
+            const slotPrefix = prob.splitSide === 'left' ? 'left' : 'right';
+            const slotA = document.querySelector(`[data-slot="${slotPrefix}-a"]`);
+            const slotB = document.querySelector(`[data-slot="${slotPrefix}-b"]`);
+            slotA.textContent = pair[0]; slotB.textContent = pair[1];
+            slotA.classList.add('bg-rose-500', 'text-white', 'm1-glow-cherry', 'scale-105');
+            slotB.classList.add('bg-rose-500', 'text-white', 'm1-glow-cherry', 'scale-105');
+            m1State.step = 2; m1UpdateStepBadges(2); m1RunStepByStepAnimations();
+        }
+
+        function m1RunStepByStepAnimations() {
+            const prob = m1State.currentProblem;
+            const [partA, partB] = m1State.selectedSplit;
+
+            if (prob.op === '+') {
+                m1El.instructionIcon.className = "fa-solid fa-[#10] text-emerald-500 text-lg animate-pulse";
+                m1El.instructionText.textContent = `${prob.left} + ${partA} ➔ 10`;
+                m1El.numLeft.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-700', 'm1-glow-green', 'scale-110');
+                const slotA = document.querySelector(`[data-slot="right-a"]`);
+                slotA.classList.add('m1-glow-green', 'ring-4', 'ring-emerald-400');
+                m1El.visualDotsArray.innerHTML = `<div class="flex items-center gap-4 transition-all duration-700 transform scale-105"><div class="p-3 bg-emerald-100 border-4 border-emerald-500 rounded-3xl flex flex-col items-center shadow-lg m1-glow-green animate-pulse"><div class="text-xs font-black text-emerald-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-lock"></i> 10</div><div class="grid grid-cols-5 gap-1.5 bg-white p-2 rounded-2xl border-2 border-emerald-200">${'🍒'.repeat(prob.left).split('').map(() => `<span class="text-xl sm:text-2xl animate-bounce">🍒</span>`).join('')}${'🔴'.repeat(partA).split('').map(() => `<span class="text-xl sm:text-2xl animate-bounce">🔴</span>`).join('')}</div></div><span class="text-3xl font-black text-slate-400">+</span><div class="p-3 bg-amber-50 border-4 border-amber-300 rounded-3xl flex flex-col items-center shadow-md"><div class="text-xs font-black text-amber-600 mb-1">${partB}</div><div class="flex gap-1.5 bg-white p-2 rounded-2xl border-2 border-amber-200">${'🔴'.repeat(partB).split('').map(() => `<span class="text-xl sm:text-2xl">🔴</span>`).join('')}</div></div></div>`;
+            } else if (prob.op === '-' && prob.splitSide === 'left') {
+                m1El.instructionIcon.className = "fa-solid fa-minus-circle text-sky-500 text-lg animate-bounce";
+                m1El.instructionText.textContent = `10 - ${prob.right} = ${10 - prob.right}`;
+                const slotA = document.querySelector(`[data-slot="left-a"]`);
+                slotA.classList.add('m1-glow-green', 'ring-4', 'ring-emerald-400');
+                m1El.visualDotsArray.innerHTML = `<div class="flex items-center gap-4 transition-all duration-700"><div class="p-3 bg-sky-100 border-4 border-sky-400 rounded-3xl flex flex-col items-center shadow-md"><div class="text-xs font-black text-sky-700 mb-1">10 - ${prob.right} = ${10 - prob.right}</div><div class="flex gap-1.5 bg-white p-2 rounded-2xl border-2 border-sky-200">${'🍒'.repeat(10 - prob.right).split('').map(() => `<span class="text-xl sm:text-2xl">🍒</span>`).join('')}${'❌'.repeat(prob.right).split('').map(() => `<span class="text-xl opacity-30 scale-75">🍒</span>`).join('')}</div></div><span class="text-3xl font-black text-slate-400">+</span><div class="p-3 bg-amber-50 border-4 border-amber-300 rounded-3xl flex flex-col items-center shadow-md"><div class="text-xs font-black text-amber-600 mb-1">${partB}</div><div class="flex gap-1.5 bg-white p-2 rounded-2xl border-2 border-amber-200">${'🍒'.repeat(partB).split('').map(() => `<span class="text-xl sm:text-2xl">🍒</span>`).join('')}</div></div></div>`;
+            } else if (prob.op === '-' && prob.splitSide === 'right') {
+                m1El.instructionIcon.className = "fa-solid fa-circle-minus text-emerald-500 text-lg animate-bounce";
+                m1El.instructionText.textContent = `${prob.left} - ${partA} ➔ 10`;
+                m1El.numLeft.classList.add('bg-emerald-100', 'border-emerald-500', 'text-emerald-700', 'm1-glow-green');
+                m1El.visualDotsArray.innerHTML = `<div class="flex items-center gap-4 transition-all duration-700"><div class="p-3 bg-emerald-100 border-4 border-emerald-500 rounded-3xl flex flex-col items-center shadow-lg"><div class="text-xs font-black text-emerald-700 mb-1 flex items-center gap-1"><i class="fa-solid fa-lock"></i> 10</div><div class="grid grid-cols-5 gap-1.5 bg-white p-2 rounded-2xl border-2 border-emerald-200">${'🍒'.repeat(10).split('').map(() => `<span class="text-xl sm:text-2xl">🍒</span>`).join('')}</div></div><span class="text-3xl font-black text-slate-400">-</span><div class="p-3 bg-rose-50 border-4 border-rose-300 rounded-3xl flex flex-col items-center shadow-md"><div class="text-xs font-black text-rose-600 mb-1">${partB}</div><div class="flex gap-1.5 bg-white p-2 rounded-2xl border-2 border-rose-200">${'🔴'.repeat(partB).split('').map(() => `<span class="text-xl sm:text-2xl">🔴</span>`).join('')}</div></div></div>`;
+            }
+            m1RenderFinalAnswerOptions();
+        }
+
+        function m1RenderFinalAnswerOptions() {
+            m1El.cherryPairOptions.classList.add('hidden'); m1El.finalAnswerOptions.classList.remove('hidden'); m1El.finalAnswerOptions.innerHTML = '';
+            const correctAns = m1State.currentProblem.answer; const choices = [correctAns];
+
+            while (choices.length < 4) {
+                let offset = (Math.floor(Math.random() * 5) + 1) * (Math.random() > 0.5 ? 1 : -1);
+                let candidate = correctAns + offset;
+                if (candidate > 0 && !choices.includes(candidate)) choices.push(candidate);
+            }
+            choices.sort(() => Math.random() - 0.5);
+
+            choices.forEach(val => {
+                const btn = document.createElement('button');
+                btn.className = "bounce-hover w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-b from-amber-300 to-amber-400 hover:from-amber-400 hover:to-amber-500 border-4 border-amber-500 text-white rounded-2xl font-black text-3xl sm:text-4xl shadow-md flex items-center justify-center";
+                btn.textContent = val;
+                btn.addEventListener('click', () => m1HandleFinalAnswerChoice(val, val === correctAns));
+                m1El.finalAnswerOptions.appendChild(btn);
+            });
+        }
+
+        function m1HandleFinalAnswerChoice(val, isCorrect) {
+            if (!isCorrect) {
+                m1Audio.playWrong();
+                m1El.choicePanel.classList.add('animate-bounce');
+                setTimeout(() => m1El.choicePanel.classList.remove('animate-bounce'), 400);
+                return;
+            }
+            m1Audio.playCorrect(); m1UpdateStepBadges(3);
+            m1El.answerBox.textContent = val; m1El.answerBoxMobile.textContent = val;
+            m1El.answerBox.className = "w-16 h-16 sm:w-20 sm:h-20 rounded-2xl border-4 border-emerald-500 bg-emerald-500 text-white font-extrabold text-3xl sm:text-4xl shadow-lg scale-110 m1-glow-green transition-all duration-500 flex items-center justify-center";
+            m1El.answerBoxMobile.className = "w-16 h-16 rounded-2xl border-4 border-emerald-500 bg-emerald-500 text-white font-extrabold text-3xl shadow-lg scale-110 m1-glow-green transition-all duration-500 flex items-center justify-center";
+            m1El.instructionIcon.className = "fa-solid fa-star text-amber-400 text-lg animate-spin";
+            m1El.instructionText.textContent = "CORRECT!";
+            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            m1State.score++; m1UpdateProgress();
+
+            setTimeout(() => {
+                if (m1State.score >= m1State.targetScore) {
+                    m1Audio.playLevelClear();
+                    completeStage(1, m1State.level, 6);
+                    m1Screens.stageClear.classList.remove('hidden');
+                } else {
+                    m1GenerateQuestion();
+                }
+            }, 1200);
+        }
+
+        /* ================================================================= */
+        /* MODULE 2 LOGIC                                                    */
+        /* ================================================================= */
+        class M2AudioEffects {
+            constructor() { this.ctx = null; }
+            init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); }
+            playPop() {
+                this.init(); const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.08);
+            }
+            playHop() {
+                this.init(); const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                osc.type = 'triangle'; osc.frequency.setValueAtTime(250, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.15);
+                gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.15);
+            }
+            playCorrect() {
+                this.init(); const now = this.ctx.currentTime;
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                    gain.gain.setValueAtTime(0.2, now + idx * 0.06); gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.25);
+                    osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now + idx * 0.06); osc.stop(now + idx * 0.06 + 0.25);
+                });
+            }
+            playWrong() {
+                this.init(); const now = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(180, now); osc.frequency.linearRampToValueAtTime(110, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(gain); gain.connect(this.ctx.destination); osc.start(now); osc.stop(now + 0.2);
+            }
+        }
+        const m2Sfx = new M2AudioEffects();
+        let m2LearnTab = 'group', m2ParamA = 3, m2ParamB = 3, m2GameMode = 'visual', m2CurrentNumA = 0, m2CurrentNumB = 0, m2UserInput = '', m2Score = 0, m2Combo = 0, m2Timer = null, m2TimeLeft = 60, m2TotalQuestions = 0;
+
+        function m2ShowScreen(id) {
+            m2Sfx.playPop();
+            ['m2-screen-mode', 'm2-screen-learn', 'm2-screen-game', 'm2-screen-result'].forEach(s => document.getElementById(s).classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function m2SwitchLearnTab(tab) {
+            m2Sfx.playPop(); m2LearnTab = tab;
+            ['group', 'hop', 'grid'].forEach(t => {
+                const btn = document.getElementById(`m2-tab-btn-${t}`); const view = document.getElementById(`m2-view-learn-${t}`);
+                if (t === tab) { btn.className = 'flex-1 py-2 rounded-xl font-black text-xs sm:text-sm bg-white text-indigo-600 shadow-sm transition'; view.classList.remove('hidden'); }
+                else { btn.className = 'flex-1 py-2 rounded-xl font-black text-xs sm:text-sm text-slate-600 hover:text-slate-800 transition'; view.classList.add('hidden'); }
+            });
+            m2RenderLearnView();
+        }
+
+        function m2ChangeParam(target, delta) {
+            m2Sfx.playPop();
+            if (target === 'a') m2ParamA = Math.max(1, Math.min(6, m2ParamA + delta));
+            if (target === 'b') m2ParamB = Math.max(1, Math.min(6, m2ParamB + delta));
+            m2RenderLearnView();
+        }
+
+        function m2RenderLearnView() {
+            document.getElementById('m2-val-param-a').textContent = m2ParamA; document.getElementById('m2-val-param-b').textContent = m2ParamB;
+            document.getElementById('m2-learn-num-a').textContent = m2ParamA; document.getElementById('m2-learn-num-b').textContent = m2ParamB;
+            document.getElementById('m2-learn-num-result').textContent = m2ParamA * m2ParamB;
+            if (m2LearnTab === 'group') m2RenderGroupView();
+            else if (m2LearnTab === 'hop') m2RenderHopView();
+            else if (m2LearnTab === 'grid') m2RenderGridView();
+        }
+
+        function m2RenderGroupView() {
+            const container = document.getElementById('m2-view-learn-group'); container.innerHTML = '';
+            for (let b = 0; b < m2ParamB; b++) {
+                const plate = document.createElement('div'); plate.className = 'bg-white border-2 border-amber-300 rounded-2xl p-2.5 shadow-sm text-center m2-animate-pop-in'; plate.style.animationDelay = `${b * 0.05}s`;
+                let apples = '<div class="grid grid-cols-3 gap-1 justify-items-center mb-1">';
+                for (let a = 0; a < m2ParamA; a++) apples += `<span class="text-xl">🍎</span>`;
+                apples += '</div>'; plate.innerHTML = apples; container.appendChild(plate);
+            }
+        }
+
+        function m2RenderHopView() {
+            const container = document.getElementById('m2-number-line-container'); container.innerHTML = '';
+            const maxVal = Math.max(20, m2ParamA * m2ParamB + 2);
+            for (let i = 0; i <= maxVal; i++) {
+                const isTarget = i > 0 && i % m2ParamA === 0 && i <= m2ParamA * m2ParamB;
+                const mark = document.createElement('div'); mark.className = `flex flex-col items-center justify-end w-8 text-xs font-black ${isTarget ? 'text-emerald-600' : 'text-slate-400'}`;
+                mark.innerHTML = `<div class="h-3 w-0.5 ${isTarget ? 'bg-emerald-500 w-1' : 'bg-slate-300'} mb-1"></div><span>${i}</span>`;
+                container.appendChild(mark);
+            }
+        }
+
+        function m2PlayFrogHopAnimation() {
+            const frog = document.getElementById('m2-frog-character'); let currentHop = 0;
+            const interval = setInterval(() => {
+                if (currentHop < m2ParamB) { currentHop++; m2Sfx.playHop(); frog.classList.remove('m2-animate-hop'); void frog.offsetWidth; frog.classList.add('m2-animate-hop'); }
+                else clearInterval(interval);
+            }, 450);
+        }
+
+        function m2RenderGridView() {
+            const container = document.getElementById('m2-view-learn-grid'); container.innerHTML = '';
+            for (let r = 0; r < m2ParamA; r++) {
+                const row = document.createElement('div'); row.className = 'flex gap-2 justify-center';
+                for (let c = 0; c < m2ParamB; c++) {
+                    const star = document.createElement('div'); star.className = 'text-2xl m2-animate-pop-in'; star.style.animationDelay = `${(r * m2ParamB + c) * 0.03}s`; star.textContent = '⭐'; row.appendChild(star);
+                }
+                container.appendChild(row);
+            }
+        }
+
+        function m2StartVisualQuiz() { m2GameMode = 'visual'; m2StartGame(); }
+        function m2SelectMode(mode) { m2GameMode = mode; m2StartGame(); }
+
+        function m2StartGame() {
+            m2Score = 0; m2Combo = 0; m2TotalQuestions = 0; m2UpdateScoreUI();
+            const timerContainer = document.getElementById('m2-timer-container'), progressBarBg = document.getElementById('m2-progress-bar-bg');
+            const optionsGrid = document.getElementById('m2-quiz-options-grid'), numpad = document.getElementById('m2-quiz-numpad');
+            const visualStage = document.getElementById('m2-quiz-visual-stage'), formulaStage = document.getElementById('m2-quiz-formula-stage');
+
+            if (m2GameMode === 'timeattack') {
+                m2TimeLeft = 60; timerContainer.classList.remove('hidden'); progressBarBg.classList.remove('hidden');
+                optionsGrid.classList.add('hidden'); numpad.classList.remove('hidden'); visualStage.classList.add('hidden'); formulaStage.classList.remove('hidden');
+                m2StartTimer();
+            } else {
+                timerContainer.classList.add('hidden'); progressBarBg.classList.add('hidden'); optionsGrid.classList.remove('hidden'); numpad.classList.add('hidden');
+                visualStage.classList.remove('hidden'); formulaStage.classList.add('hidden'); if (m2Timer) clearInterval(m2Timer);
+            }
+            m2ShowScreen('m2-screen-game'); m2NextQuizQuestion();
+        }
+
+        function m2StartTimer() {
+            if (m2Timer) clearInterval(m2Timer);
+            m2Timer = setInterval(() => {
+                m2TimeLeft--; document.getElementById('m2-time-left').textContent = `${m2TimeLeft}s`;
+                document.getElementById('m2-progress-bar').style.width = `${(m2TimeLeft / 60) * 100}%`;
+                if (m2TimeLeft <= 0) { clearInterval(m2Timer); m2EndGame(); }
+            }, 1000);
+        }
+
+        function m2NextQuizQuestion() {
+            m2UserInput = ''; m2UpdateInputDisplay();
+            m2CurrentNumA = Math.floor(Math.random() * 5) + 2; m2CurrentNumB = Math.floor(Math.random() * 5) + 1;
+            const correctAns = m2CurrentNumA * m2CurrentNumB;
+
+            if (m2GameMode === 'visual') {
+                const stage = document.getElementById('m2-quiz-visual-stage'); stage.innerHTML = '';
+                for (let b = 0; b < m2CurrentNumB; b++) {
+                    const plate = document.createElement('div'); plate.className = 'bg-white border-2 border-amber-300 rounded-2xl p-2 shadow-sm text-center m2-animate-pop-in';
+                    let items = '<div class="grid grid-cols-3 gap-1">';
+                    for (let a = 0; a < m2CurrentNumA; a++) items += `<span class="text-lg">🍪</span>`;
+                    items += '</div>'; plate.innerHTML = items; stage.appendChild(plate);
+                }
+                const grid = document.getElementById('m2-quiz-options-grid'); grid.innerHTML = ''; const choices = [correctAns];
+                while (choices.length < 4) {
+                    const dummy = (Math.floor(Math.random() * 5) + 2) * (Math.floor(Math.random() * 5) + 1);
+                    if (!choices.includes(dummy)) choices.push(dummy);
+                }
+                choices.sort(() => Math.random() - 0.5);
+                choices.forEach(ans => {
+                    const btn = document.createElement('button'); btn.className = 'm2-btn-3d bg-white hover:bg-slate-50 text-indigo-600 font-black text-3xl py-4 rounded-2xl border-2 border-slate-200 shadow-md';
+                    btn.textContent = ans; btn.onclick = () => m2CheckQuizAnswer(ans); grid.appendChild(btn);
+                });
+            } else {
+                document.getElementById('m2-num-a').textContent = m2CurrentNumA; document.getElementById('m2-num-b').textContent = m2CurrentNumB;
+            }
+        }
+
+        function m2CheckQuizAnswer(selected) {
+            const expected = m2CurrentNumA * m2CurrentNumB;
+            if (selected === expected) {
+                m2Sfx.playCorrect(); m2Combo++; m2Score += 100 * m2Combo;
+                if (m2Combo >= 3) confetti({ particleCount: 30, spread: 60, origin: { y: 0.6 } });
+            } else { m2Sfx.playWrong(); m2Combo = 0; }
+            m2TotalQuestions++; m2UpdateScoreUI();
+            if (m2GameMode === 'visual' && m2TotalQuestions >= 10) setTimeout(m2EndGame, 400);
+            else m2NextQuizQuestion();
+        }
+
+        function m2PressNum(n) { m2Sfx.playPop(); if (m2UserInput.length < 3) { m2UserInput += n.toString(); m2UpdateInputDisplay(); } }
+        function m2PressClear() { m2Sfx.playPop(); m2UserInput = ''; m2UpdateInputDisplay(); }
+        function m2UpdateInputDisplay() { document.getElementById('m2-user-input-display').textContent = m2UserInput === '' ? '?' : m2UserInput; }
+        function m2SubmitAnswer() { if (m2UserInput === '') return; m2CheckQuizAnswer(parseInt(m2UserInput, 10)); }
+
+        function m2UpdateScoreUI() {
+            document.getElementById('m2-game-score').textContent = m2Score; const comboContainer = document.getElementById('m2-combo-container');
+            if (m2Combo >= 2) { document.getElementById('m2-combo-count').textContent = m2Combo; comboContainer.classList.remove('hidden'); comboContainer.classList.add('flex'); }
+            else comboContainer.classList.add('hidden');
+        }
+
+        function m2EndGame() {
+            if (m2Timer) clearInterval(m2Timer);
+            m2Sfx.playCorrect(); document.getElementById('m2-final-score').textContent = m2Score;
+            confetti({ particleCount: 80, spread: 80, origin: { y: 0.5 } });
+            const stageIndex = m2GameMode === 'visual' ? 2 : 3;
+            completeStage(2, stageIndex, 3);
+            m2ShowScreen('m2-screen-result');
+        }
+
+        /* ================================================================= */
+        /* MODULE 3 LOGIC                                                    */
+        /* ================================================================= */
+        let m3AudioCtx = null;
+        function m3PlaySound(type) {
+            try {
+                if (!m3AudioCtx) m3AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = m3AudioCtx.createOscillator(); const gain = m3AudioCtx.createGain();
+                osc.connect(gain); gain.connect(m3AudioCtx.destination);
+                if (type === 'tile') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(440, m3AudioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(880, m3AudioCtx.currentTime + 0.08);
+                    gain.gain.setValueAtTime(0.2, m3AudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, m3AudioCtx.currentTime + 0.08);
+                    osc.start(); osc.stop(m3AudioCtx.currentTime + 0.08);
+                } else if (type === 'win') {
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, m3AudioCtx.currentTime); osc.frequency.setValueAtTime(659.25, m3AudioCtx.currentTime + 0.1); osc.frequency.setValueAtTime(783.99, m3AudioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.3, m3AudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, m3AudioCtx.currentTime + 0.4);
+                    osc.start(); osc.stop(m3AudioCtx.currentTime + 0.4);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, m3AudioCtx.currentTime); osc.frequency.setValueAtTime(180, m3AudioCtx.currentTime + 0.15);
+                    gain.gain.setValueAtTime(0.2, m3AudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, m3AudioCtx.currentTime + 0.2);
+                    osc.start(); osc.stop(m3AudioCtx.currentTime + 0.2);
+                }
+            } catch (e) {}
+        }
+
+        const M3_STAGES = {
+            1: { name: "ステージ 1 : ちょうほうけい", title: "枠の中に 1 cm² の正方形をしきつめよう！", type: "rect", w: 5, h: 3, targetArea: 15 },
+            2: { name: "ステージ 2 : 大きなしかく", title: "少し大きな長方形の面積をはかってみよう！", type: "rect", w: 6, h: 4, targetArea: 24 },
+            3: { name: "ステージ 3 : Lがた (さくらんぼ切断)", title: "L字型の部屋を2つの長方形に分けて計算しよう！", type: "lshape", targetArea: 14 }
+        };
+
+        let m3CurrentStageId = 1, m3CompletedStages = new Set(), m3GridState = [], m3LCutMode = 'none';
+        const m3UnitSize = 40; let m3Canvas, m3Ctx;
+
+        function m3InitCanvas() {
+            m3Canvas = document.getElementById('m3GridCanvas'); m3Ctx = m3Canvas.getContext('2d');
+            m3Canvas.addEventListener('click', function(e) {
+                const rect = m3Canvas.getBoundingClientRect(); const clickX = e.clientX - rect.left; const clickY = e.clientY - rect.top;
+                const st = M3_STAGES[m3CurrentStageId]; let gridW = st.w || 4; let gridH = st.h || 5;
+                const totalPxW = gridW * m3UnitSize; const totalPxH = gridH * m3UnitSize;
+                const offsetX = (m3Canvas.width - totalPxW) / 2; const offsetY = (m3Canvas.height - totalPxH) / 2;
+                const col = Math.floor((clickX - offsetX) / m3UnitSize); const row = Math.floor((clickY - offsetY) / m3UnitSize);
+
+                if (row >= 0 && row < m3GridState.length && col >= 0 && col < m3GridState[row].length) {
+                    if (m3GridState[row][col] !== null) { m3GridState[row][col] = !m3GridState[row][col]; m3PlaySound('tile'); m3Render(); }
+                }
+            });
+        }
+
+        function m3LoadStage(stageId) {
+            m3CurrentStageId = stageId; m3LCutMode = 'none';
+            [1, 2, 3].forEach(id => {
+                const btn = document.getElementById(`m3-btn-st-${id}`);
+                btn.className = (id === stageId) ? "py-2 rounded-xl font-black text-xs m3-btn-game bg-amber-500 text-white shadow" : "py-2 rounded-xl font-black text-xs m3-btn-game bg-slate-100 text-slate-700 hover:bg-slate-200";
+            });
+
+            const st = M3_STAGES[stageId];
+            document.getElementById('m3-level-badge').innerText = st.name; document.getElementById('m3-task-title').innerText = st.title;
+            document.getElementById('m3-user-answer').value = '';
+            const scissorsTools = document.getElementById('m3-scissors-tools');
+            if (st.type === 'lshape') scissorsTools.classList.remove('hidden'); else scissorsTools.classList.add('hidden');
+            m3InitGridState(); m3Render();
+        }
+
+        function m3InitGridState() {
+            const st = M3_STAGES[m3CurrentStageId]; m3GridState = [];
+            if (st.type === 'rect') {
+                for (let r = 0; r < st.h; r++) m3GridState[r] = new Array(st.w).fill(false);
+            } else if (st.type === 'lshape') {
+                for (let r = 0; r < 5; r++) {
+                    const cols = (r < 3) ? 2 : 4; m3GridState[r] = [];
+                    for (let c = 0; c < 4; c++) m3GridState[r][c] = (c < cols) ? false : null;
+                }
+            }
+        }
+
+        function m3ResetCurrentStage() { m3InitGridState(); document.getElementById('m3-user-answer').value = ''; m3Render(); }
+        function m3AutoFillGrid() {
+            m3PlaySound('tile');
+            for (let r = 0; r < m3GridState.length; r++) {
+                for (let c = 0; c < m3GridState[r].length; c++) if (m3GridState[r][c] !== null) m3GridState[r][c] = true;
+            }
+            m3Render();
+        }
+        function m3CutLShape(mode) { m3LCutMode = mode; m3PlaySound('tile'); m3Render(); }
+
+        function m3Render() {
+            if (!m3Ctx) return;
+            m3Ctx.clearRect(0, 0, m3Canvas.width, m3Canvas.height);
+            const st = M3_STAGES[m3CurrentStageId]; let gridW = st.w || 4; let gridH = st.h || 5;
+            const totalPxW = gridW * m3UnitSize; const totalPxH = gridH * m3UnitSize;
+            const offsetX = (m3Canvas.width - totalPxW) / 2; const offsetY = (m3Canvas.height - totalPxH) / 2;
+
+            if (st.type === 'rect') {
+                document.getElementById('m3-ruler-top').innerText = `よこ: ${st.w} cm`; document.getElementById('m3-ruler-left').innerText = `たて: ${st.h} cm`;
+                document.getElementById('m3-stat-h').innerText = `${st.h} cm`; document.getElementById('m3-stat-w').innerText = `${st.w} cm`;
+            } else {
+                document.getElementById('m3-ruler-top').innerText = `Lがた図形`; document.getElementById('m3-ruler-left').innerText = `さくらんぼ切断`;
+                document.getElementById('m3-stat-h').innerText = `5 cm (さいだい)`; document.getElementById('m3-stat-w').innerText = `4 cm (さいだい)`;
+            }
+
+            m3Ctx.strokeStyle = "#e2e8f0"; m3Ctx.lineWidth = 1;
+            for (let x = 0; x < m3Canvas.width; x += 20) { m3Ctx.beginPath(); m3Ctx.moveTo(x, 0); m3Ctx.lineTo(x, m3Canvas.height); m3Ctx.stroke(); }
+            for (let y = 0; y < m3Canvas.height; y += 20) { m3Ctx.beginPath(); m3Ctx.moveTo(0, y); m3Ctx.lineTo(m3Canvas.width, y); m3Ctx.stroke(); }
+
+            let placedCount = 0;
+            for (let r = 0; r < m3GridState.length; r++) {
+                for (let c = 0; c < m3GridState[r].length; c++) {
+                    if (m3GridState[r][c] === null) continue;
+                    const cellX = offsetX + c * m3UnitSize; const cellY = offsetY + r * m3UnitSize;
+                    if (m3GridState[r][c] === true) {
+                        placedCount++;
+                        m3Ctx.fillStyle = "#f59e0b"; m3Ctx.fillRect(cellX + 1, cellY + 1, m3UnitSize - 2, m3UnitSize - 2);
+                        m3Ctx.fillStyle = "#d97706"; m3Ctx.fillRect(cellX + 3, cellY + 3, m3UnitSize - 6, m3UnitSize - 6);
+                        m3Ctx.fillStyle = "#ffffff"; m3Ctx.font = "bold 13px 'M PLUS Rounded 1c'"; m3Ctx.textAlign = "center"; m3Ctx.textBaseline = "middle";
+                        m3Ctx.fillText(placedCount, cellX + m3UnitSize/2, cellY + m3UnitSize/2);
+                    } else {
+                        m3Ctx.fillStyle = "rgba(99, 102, 241, 0.15)"; m3Ctx.fillRect(cellX + 1, cellY + 1, m3UnitSize - 2, m3UnitSize - 2);
+                        m3Ctx.strokeStyle = "#a5b4fc"; m3Ctx.lineWidth = 1.5; m3Ctx.strokeRect(cellX + 1, cellY + 1, m3UnitSize - 2, m3UnitSize - 2);
+                    }
+                }
+            }
+
+            m3Ctx.strokeStyle = "#4f46e5"; m3Ctx.lineWidth = 3;
+            if (st.type === 'rect') { m3Ctx.strokeRect(offsetX, offsetY, totalPxW, totalPxH); }
+            else if (st.type === 'lshape') {
+                m3Ctx.beginPath(); m3Ctx.moveTo(offsetX, offsetY); m3Ctx.lineTo(offsetX + 2 * m3UnitSize, offsetY);
+                m3Ctx.lineTo(offsetX + 2 * m3UnitSize, offsetY + 3 * m3UnitSize); m3Ctx.lineTo(offsetX + 4 * m3UnitSize, offsetY + 3 * m3UnitSize);
+                m3Ctx.lineTo(offsetX + 4 * m3UnitSize, offsetY + 5 * m3UnitSize); m3Ctx.lineTo(offsetX, offsetY + 5 * m3UnitSize);
+                m3Ctx.closePath(); m3Ctx.stroke();
+
+                if (m3LCutMode === 'vertical') {
+                    m3Ctx.beginPath(); m3Ctx.setLineDash([6, 6]); m3Ctx.moveTo(offsetX + 2 * m3UnitSize, offsetY);
+                    m3Ctx.lineTo(offsetX + 2 * m3UnitSize, offsetY + 5 * m3UnitSize); m3Ctx.strokeStyle = "#ef4444"; m3Ctx.lineWidth = 3.5; m3Ctx.stroke(); m3Ctx.setLineDash([]);
+                } else if (m3LCutMode === 'horizontal') {
+                    m3Ctx.beginPath(); m3Ctx.setLineDash([6, 6]); m3Ctx.moveTo(offsetX, offsetY + 3 * m3UnitSize);
+                    m3Ctx.lineTo(offsetX + 4 * m3UnitSize, offsetY + 3 * m3UnitSize); m3Ctx.strokeStyle = "#06b6d4"; m3Ctx.lineWidth = 3.5; m3Ctx.stroke(); m3Ctx.setLineDash([]);
+                }
+            }
+            document.getElementById('m3-placed-count').innerText = placedCount; document.getElementById('m3-stat-total').innerText = `${placedCount} 個`;
+        }
+
+        function m3CheckAnswer() {
+            const st = M3_STAGES[m3CurrentStageId]; const userVal = parseInt(document.getElementById('m3-user-answer').value);
+            if (isNaN(userVal)) { alert("数字を入力してね！"); return; }
+            if (userVal === st.targetArea) {
+                m3PlaySound('win'); m3CompletedStages.add(m3CurrentStageId);
+                document.getElementById('m3-star-count').innerText = `${m3CompletedStages.size} / 3`;
+                confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+                completeStage(3, m3CurrentStageId, 3);
+
+                if (m3CurrentStageId < 3) {
+                    setTimeout(() => { alert("🎉 せいかい！次のステージに進もう！"); m3LoadStage(m3CurrentStageId + 1); }, 300);
+                } else {
+                    setTimeout(() => { alert("🌟 すごい！ぜんぶのステージをクリアしたよ！さくらんぼ変身術マスターだ！"); }, 300);
+                }
+            } else {
+                m3PlaySound('wrong'); alert(`ざんねん！もう一度計算してみよう！（ヒント: ぜんぶで ${st.targetArea} cm² だよ）`);
+            }
+        }
+
+        function m3ToggleHintModal() { document.getElementById('m3-hint-modal').classList.toggle('hidden'); }
+
+        /* ================================================================= */
+        /* MODULE 4 LOGIC                                                    */
+        /* ================================================================= */
+        let m4AudioCtx = null;
+        function m4PlaySound(type) {
+            try {
+                if (!m4AudioCtx) m4AudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = m4AudioCtx.createOscillator(); const gain = m4AudioCtx.createGain();
+                osc.connect(gain); gain.connect(m4AudioCtx.destination);
+                if (type === 'press') {
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(500, m4AudioCtx.currentTime); gain.gain.setValueAtTime(0.1, m4AudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, m4AudioCtx.currentTime + 0.05); osc.start(); osc.stop(m4AudioCtx.currentTime + 0.05);
+                } else if (type === 'win') {
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, m4AudioCtx.currentTime); osc.frequency.setValueAtTime(659.25, m4AudioCtx.currentTime + 0.1); osc.frequency.setValueAtTime(783.99, m4AudioCtx.currentTime + 0.2); gain.gain.setValueAtTime(0.2, m4AudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, m4AudioCtx.currentTime + 0.35); osc.start(); osc.stop(m4AudioCtx.currentTime + 0.35);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, m4AudioCtx.currentTime); osc.frequency.setValueAtTime(180, m4AudioCtx.currentTime + 0.15); gain.gain.setValueAtTime(0.15, m4AudioCtx.currentTime); gain.gain.linearRampToValueAtTime(0.01, m4AudioCtx.currentTime + 0.2); osc.start(); osc.stop(m4AudioCtx.currentTime + 0.2);
+                }
+            } catch (e) {}
+        }
+
+        let m4CurrentStage = 1, m4CurrentQuestionIndex = 0, m4CurrentInput = "", m4CurrentProblem = null, m4StageCleared = { 1: false, 2: false };
+        let m4Canvas, m4Ctx;
+
+        function m4InitCanvas() { m4Canvas = document.getElementById('m4ShapeCanvas'); m4Ctx = m4Canvas.getContext('2d'); }
+
+        function m4GenerateProblem(stage, qIndex) {
+            if (stage === 1) {
+                const h = 3 + Math.floor(Math.random() * 5); const w = 4 + Math.floor(Math.random() * 6);
+                return { h, w, targetArea: h * w, type: 'rect' };
+            } else {
+                const h = 4 + Math.floor(Math.random() * 5); const w1 = 5; const w2 = 2 + Math.floor(Math.random() * 3);
+                return { h, w1, w2, w: w1 + w2, targetArea: h * (w1 + w2), type: 'cherry' };
+            }
+        }
+
+        function m4LoadQuestion() {
+            m4CurrentInput = ""; m4UpdateInputDisplay();
+            m4CurrentProblem = m4GenerateProblem(m4CurrentStage, m4CurrentQuestionIndex);
+            document.getElementById('m4-question-progress').innerText = `${m4CurrentQuestionIndex + 1} / 10`;
+            document.getElementById('m4-progress-bar-inner').style.width = `${((m4CurrentQuestionIndex + 1) / 10) * 100}%`;
+
+            const stageBadge = document.getElementById('m4-stage-badge'), stageTitle = document.getElementById('m4-stage-title'), canvasHint = document.getElementById('m4-canvas-hint');
+            if (m4CurrentStage === 1) {
+                stageBadge.innerText = "ステージ 1"; stageTitle.innerText = "数えるより「掛け算」！";
+                canvasHint.innerText = `たて ${m4CurrentProblem.h} cm × よこ ${m4CurrentProblem.w} cm ＝ 面積`;
+            } else {
+                stageBadge.innerText = "ステージ 2"; stageTitle.innerText = "さくらんぼ変身術 (分解計算)";
+                canvasHint.innerText = `よこ ${m4CurrentProblem.w} cm を 5 cm と ${m4CurrentProblem.w2} cm にチョキン！`;
+            }
+            m4RenderCanvas();
+        }
+
+        function m4RenderCanvas() {
+            if (!m4Ctx) return;
+            m4Ctx.clearRect(0, 0, m4Canvas.width, m4Canvas.height);
+            const p = m4CurrentProblem; const tileSize = Math.min(220 / p.h, 280 / p.w);
+            const totalPxW = p.w * tileSize; const totalPxH = p.h * tileSize;
+            const offsetX = (m4Canvas.width - totalPxW) / 2; const offsetY = (m4Canvas.height - totalPxH) / 2;
+
+            m4Ctx.strokeStyle = "#f1f5f9"; m4Ctx.lineWidth = 1;
+            for (let x = 0; x < m4Canvas.width; x += 15) { m4Ctx.beginPath(); m4Ctx.moveTo(x, 0); m4Ctx.lineTo(x, m4Canvas.height); m4Ctx.stroke(); }
+            for (let y = 0; y < m4Canvas.height; y += 15) { m4Ctx.beginPath(); m4Ctx.moveTo(0, y); m4Ctx.lineTo(m4Canvas.width, y); m4Ctx.stroke(); }
+
+            if (p.type === 'rect') {
+                m4Ctx.fillStyle = "rgba(251, 191, 36, 0.25)"; m4Ctx.fillRect(offsetX, offsetY, totalPxW, totalPxH);
+                m4Ctx.strokeStyle = "#fcd34d"; m4Ctx.lineWidth = 1;
+                for (let r = 0; r <= p.h; r++) { m4Ctx.beginPath(); m4Ctx.moveTo(offsetX, offsetY + r * tileSize); m4Ctx.lineTo(offsetX + totalPxW, offsetY + r * tileSize); m4Ctx.stroke(); }
+                for (let c = 0; c <= p.w; c++) { m4Ctx.beginPath(); m4Ctx.moveTo(offsetX + c * tileSize, offsetY); m4Ctx.lineTo(offsetX + c * tileSize, offsetY + totalPxH); m4Ctx.stroke(); }
+                m4Ctx.strokeStyle = "#d97706"; m4Ctx.lineWidth = 3; m4Ctx.strokeRect(offsetX, offsetY, totalPxW, totalPxH);
+                m4Ctx.fillStyle = "#92400e"; m4Ctx.font = "bold 14px 'M PLUS Rounded 1c'"; m4Ctx.textAlign = "center"; m4Ctx.textBaseline = "middle";
+                m4Ctx.fillText(`${p.h} cm`, offsetX - 25, offsetY + totalPxH / 2); m4Ctx.fillText(`${p.w} cm`, offsetX + totalPxW / 2, offsetY - 15);
+            } else if (p.type === 'cherry') {
+                const pxW1 = p.w1 * tileSize; const pxW2 = p.w2 * tileSize;
+                m4Ctx.fillStyle = "rgba(251, 191, 36, 0.3)"; m4Ctx.fillRect(offsetX, offsetY, pxW1, totalPxH);
+                m4Ctx.fillStyle = "rgba(56, 189, 248, 0.3)"; m4Ctx.fillRect(offsetX + pxW1, offsetY, pxW2, totalPxH);
+                m4Ctx.strokeStyle = "rgba(148, 163, 184, 0.4)"; m4Ctx.lineWidth = 1;
+                for (let r = 0; r <= p.h; r++) { m4Ctx.beginPath(); m4Ctx.moveTo(offsetX, offsetY + r * tileSize); m4Ctx.lineTo(offsetX + totalPxW, offsetY + r * tileSize); m4Ctx.stroke(); }
+                m4Ctx.strokeStyle = "#d97706"; m4Ctx.lineWidth = 3; m4Ctx.strokeRect(offsetX, offsetY, pxW1, totalPxH);
+                m4Ctx.strokeStyle = "#0284c7"; m4Ctx.lineWidth = 3; m4Ctx.strokeRect(offsetX + pxW1, offsetY, pxW2, totalPxH);
+                m4Ctx.beginPath(); m4Ctx.setLineDash([5, 5]); m4Ctx.moveTo(offsetX + pxW1, offsetY - 10); m4Ctx.lineTo(offsetX + pxW1, offsetY + totalPxH + 10);
+                m4Ctx.strokeStyle = "#ef4444"; m4Ctx.lineWidth = 3; m4Ctx.stroke(); m4Ctx.setLineDash([]);
+                m4Ctx.fillStyle = "#92400e"; m4Ctx.font = "bold 13px 'M PLUS Rounded 1c'"; m4Ctx.textAlign = "center";
+                m4Ctx.fillText(`${p.h} cm`, offsetX - 24, offsetY + totalPxH / 2);
+                m4Ctx.fillText(`5 cm`, offsetX + pxW1 / 2, offsetY - 15); m4Ctx.fillText(`(${p.h}×5=${p.h * 5})`, offsetX + pxW1 / 2, offsetY + totalPxH / 2);
+                m4Ctx.fillStyle = "#0369a1"; m4Ctx.fillText(`${p.w2} cm`, offsetX + pxW1 + pxW2 / 2, offsetY - 15); m4Ctx.fillText(`(${p.h}×${p.w2}=${p.h * p.w2})`, offsetX + pxW1 + pxW2 / 2, offsetY + totalPxH / 2);
+            }
+        }
+
+        function m4AppendNum(num) { m4PlaySound('press'); if (m4CurrentInput.length < 3) { m4CurrentInput += num.toString(); m4UpdateInputDisplay(); } }
+        function m4ClearInput() { m4PlaySound('press'); m4CurrentInput = ""; m4UpdateInputDisplay(); }
+        function m4UpdateInputDisplay() { document.getElementById('m4-answer-display').innerText = m4CurrentInput === "" ? "?" : m4CurrentInput; }
+
+        function m4CheckAnswer() {
+            const userVal = parseInt(m4CurrentInput); if (isNaN(userVal)) return;
+            if (userVal === m4CurrentProblem.targetArea) {
+                m4PlaySound('win'); confetti({ particleCount: 50, spread: 50, origin: { y: 0.6 } });
+                if (m4CurrentQuestionIndex < 9) {
+                    m4CurrentQuestionIndex++; setTimeout(() => m4LoadQuestion(), 400);
+                } else {
+                    m4StageCleared[m4CurrentStage] = true; m4UpdateStageProgressUI();
+                    completeStage(4, m4CurrentStage, 2);
+                    if (m4CurrentStage === 1) {
+                        alert("🎉 ステージ1クリア！素晴らしい！\n次の「さくらんぼ変身術（分解計算）」へ進もう！"); m4SwitchStage(2);
+                    } else {
+                        confetti({ particleCount: 150, spread: 100, origin: { y: 0.5 } });
+                        alert("🌟 全ステージ（20問）クリア！おめでとう！\nきみは面積＆さくらんぼ変身術のマスターだ！");
+                    }
+                }
+            } else {
+                m4PlaySound('wrong'); alert(`ざんねん！正解は ${m4CurrentProblem.targetArea} cm² だよ。もう一度計算してみよう！`); m4ClearInput();
+            }
+        }
+
+        function m4SwitchStage(stageNum) {
+            m4CurrentStage = stageNum; m4CurrentQuestionIndex = 0;
+            const btn1 = document.getElementById('m4-stage-btn-1'), btn2 = document.getElementById('m4-stage-btn-2');
+            btn1.className = (stageNum === 1) ? "flex-1 py-2.5 rounded-xl font-black text-xs m4-btn-game bg-amber-500 text-white shadow" : "flex-1 py-2.5 rounded-xl font-black text-xs m4-btn-game bg-slate-100 text-slate-700 hover:bg-slate-200";
+            btn2.className = (stageNum === 2) ? "flex-1 py-2.5 rounded-xl font-black text-xs m4-btn-game bg-amber-500 text-white shadow" : "flex-1 py-2.5 rounded-xl font-black text-xs m4-btn-game bg-slate-100 text-slate-700 hover:bg-slate-200";
+            m4LoadQuestion();
+        }
+
+        function m4UpdateStageProgressUI() {
+            const count = Object.values(m4StageCleared).filter(Boolean).length;
+            document.getElementById('m4-completed-stage-count').innerText = `${count} / 2`;
+        }
+
+        window.addEventListener('keydown', (e) => {
+            const mod4 = document.getElementById('global-module-4');
+            if (!mod4.classList.contains('hidden')) {
+                if (e.key >= '0' && e.key <= '9') m4AppendNum(parseInt(e.key));
+                else if (e.key === 'Enter') m4CheckAnswer();
+                else if (e.key === 'Backspace' || e.key === 'Delete') m4ClearInput();
+            }
+        });
+
+        /* ================================================================= */
+        /* INITIALIZATION                                                    */
+        /* ================================================================= */
+        window.addEventListener('DOMContentLoaded', () => {
+            renderHomeCards();
+            m1InitDOMElements(); m1InitDifficultyUI(); m1SetupEventListeners();
+            m2RenderLearnView();
+            m3InitCanvas(); m3LoadStage(1);
+            m4InitCanvas(); m4LoadQuestion();
+        });
+    </script>
+</body>
+</html>
